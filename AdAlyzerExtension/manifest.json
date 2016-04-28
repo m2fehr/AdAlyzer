@@ -21,7 +21,7 @@
 		"128": "icon128.png"
 	},
 	"permissions": [
-    "activeTab", "webRequest", "http://*/*", "https://*/*"
+    "activeTab", "tabs", "webRequest", "http://*/*", "https://*/*"
   ],
 	"web_accessible_resources" : ["popup.html", "popup.js"]
 }
