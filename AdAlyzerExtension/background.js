@@ -29,20 +29,6 @@ console.assert(!m.has(key3), "m should not contain key3.");
 
 var reqs = new Map();
 var ads = new Map();
-/*
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) { 
-		if(message.messageType == 'request' && message.tabId != -1) {
-			var reqCount = reqs.get(message.tabId);
-			console.log("messageType request received");
-			if(reqCount) {
-				reqs.set(message.tabId, reqCount + 1);
-			}
-			else {
-				reqs.set(message.tabId, 1);
-			}
-		}
-	 });
-*/
 
 chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
    	reqs.delete(tabId);
