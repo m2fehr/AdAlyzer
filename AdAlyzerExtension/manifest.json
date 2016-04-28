@@ -13,7 +13,7 @@
 		{
 			"matches": ["<all_urls>"],
 			"js": ["contentscript.js"],
-			"run_at": "document_idle"
+			"run_at": "document_start"
 		}
 	],
 	"icons": {
@@ -21,7 +21,7 @@
 		"128": "icon128.png"
 	},
 	"permissions": [
-    "activeTab"
+    "activeTab", "webRequest", "http://*/*", "https://*/*"
   ],
 	"web_accessible_resources" : ["popup.html", "popup.js"]
 }
