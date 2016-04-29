@@ -68,7 +68,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 			}
 			if(details.url.indexOf('ad') !== -1) {	//ToDo: Check for Ads
 				var adsCount = ads.get(tabId);
-				if(adsCount) {
+				if(typeof adsCount !== "undefined") {
 					adsCount = adsCount + 1;
 					ads.set(tabId, adsCount);
 				}
