@@ -1,71 +1,98 @@
-/*
-var m = new Map();
 
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) { 
-		console.log("bg message received, tabID: " + sender.tab.id + " img: " + message.imgCount);
-		m.set(sender.tab.id, message.imgCount);
-		
-	 });
+/* //Just Samples for classes
+class Request {
+  constructor(reqId) {
+    this.reqId = reqId;
+  }
+}
 
-chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
-   console.log("tabID: " + tabId + "closed");
-   m.delete(tabId);
+var req = function(reqId) {
+  if (this instanceof req) {
+    this.reqId = reqId;
+  } else {
+    return new req(reqId);
+  }
+}
+
+//console command to put out all the entries
+tabs.forEach(function(value, key, map) {
+	console.log("tabs[" + key + "] = " + value.size);
+	value.forEach(function(value, key, map) {
+		if (value.finished)
+    		console.log("reqId[" + key + "] = " + value.url);
+	});	
 });
+
 */
 
-//Map Overview
-/*
-var m = new Map();
-var key1 = 'key1';
-var key2 = {};
-var key3 = {};
-
-m.set(key1, 'value1');
-m.set(key2, 'value2');
-
-console.assert(m.has(key2), "m should contain key2.");
-console.assert(!m.has(key3), "m should not contain key3.");
-*/
-
-var reqs = new Map();
+var tabs = new Map();
 var ads = new Map();
 
 chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
-   	reqs.delete(tabId);
+   	tabs.delete(tabId);
    	ads.delete(tabId);
-   	console.log("tabID: " + tabId + "closed, length now: " + reqs.size);
-   	reqs.forEach(function(value, key, map) {
-    	console.log("reqs[" + key + "] = " + value);
-});
+   	console.log("tabID: " + tabId + "closed, length now: " + tabs.size);
+   	tabs.forEach(function(value, key, map) {
+    	console.log("tabs[" + key + "] = " + value.size);
+	});
 });
 
 chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
-   	reqs.delete(removedTabId);
+   	tabs.delete(removedTabId);
    	ads.delete(tabId);
-   	console.log("tabID: " + removedTabId + "replaced, length now: " + reqs.size);
+   	console.log("tabID: " + removedTabId + "replaced, length now: " + tabs.size);
 });
 
 //Reset the Counter when new url is loaded
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	if (changeInfo.status === "loading") {
-		console.log("reseted counter for tab " + tabId);
-		reqs.set(tabId, 0);
+		
+		//tabs.set(tabId, 0);
+		var reqs = tabs.get(tabId);
+		if(typeof reqs !== "undefined") {
+			reqs.clear();
+			console.log("reseted counter for tab " + tabId);
+		}
 		ads.set(tabId, 0);
 	}
 });
 
-chrome.webRequest.onBeforeRequest.addListener(
-    function(details) {
+chrome.webRequest.onBeforeRequest.addListener(function(details) {
     	var tabId = details.tabId;
-      	if(tabId && tabId !== -1) {
-			var reqCount = reqs.get(tabId);
+    	var requestId = details.requestId;
+
+      	if(tabId && tabId !== -1) {	//check if tabId is valid
+
+      		var tabEntry = tabs.get(tabId);
+
+			if(typeof tabEntry === "undefined") {	//check if an entry exists for this tab
+				var reqMap = new Map();
+				reqMap.set(requestId, {url: details.url});
+				tabs.set(tabId, reqMap);
+			}
+			
+			else {
+				var reqEntry = tabEntry.get(requestId);
+
+				if(typeof reqEntry === "undefined") {	//check if requestId is already used
+					tabEntry.set(requestId, {url: details.url});
+				}
+				else {
+					console.log("onBeforeRequest: requestId already in map");
+				}
+			}
+/*
+      		//count requests
+			var reqCount = tabs.get(tabId);
 			if(typeof reqCount !== "undefined") {
-				reqs.set(tabId, reqCount + 1);
+				tabs.set(tabId, reqCount + 1);
 			}
 			else {
-				reqs.set(tabId, 1);
+				tabs.set(tabId, 1);
 				console.log("new Tab was added to Map, Id: " + tabId);
 			}
+*/
+			//count ads and update badge
 			if(details.url.indexOf('ad') !== -1) {	//ToDo: Check for Ads
 				var adsCount = ads.get(tabId);
 				if(typeof adsCount !== "undefined") {
@@ -78,9 +105,29 @@ chrome.webRequest.onBeforeRequest.addListener(
 				}
 				chrome.browserAction.setBadgeText({text: adsCount.toString(), tabId: tabId});
 			} 
+
 		}
     },
     {urls: ["<all_urls>"]},
     []
+);
+
+chrome.webRequest.onCompleted.addListener(function (details) {
+		var tabId = details.tabId;
+		var requestId = details.requestId;
+		if(tabId && tabId !== -1) {	//check if tabId is valid
+	  		var tabEntry = tabs.get(tabId);
+			if(typeof tabEntry !== "undefined") {	//check if an entry exists for this tab
+				var reqEntry = tabEntry.get(requestId);
+				if(typeof reqEntry !== "undefined") {	//check if requestId is already used
+					reqEntry.finished = true;
+				}
+				else {
+					console.log("onCompleted: requestId not in map");
+				}
+			}
+		}
+	},
+	{urls: ["<all_urls>"]}
 );
 

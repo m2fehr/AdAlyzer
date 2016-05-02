@@ -9,8 +9,8 @@ window.addEventListener('load', function(evt) {
     chrome.tabs.query(query, function(tabs) {
         var currentTab = tabs[0];
 
-        if (backgroundWindow.reqs.has(currentTab.id))
-            reqsSpan.innerHTML = backgroundWindow.reqs.get(currentTab.id);
+        if (backgroundWindow.tabs.has(currentTab.id))
+            reqsSpan.innerHTML = backgroundWindow.tabs.get(currentTab.id).size;
         else
             reqsSpan.innerHTML = "reload the page";
         
