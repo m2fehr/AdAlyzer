@@ -19,7 +19,7 @@ tabs.forEach(function(value, key, map) {
 	console.log("tabs[" + key + "] = " + value.size);
 	value.forEach(function(value, key, map) {
 		if (value.finished)
-    		console.log("reqId[" + key + "] = " + value.url);
+    		console.log("reqId[" + key + "] waiting: " + (value.responseReceived - value.requestSent) + "ms, download: " + (value.completed - value.responseReceived) + "ms, url:" + value.url);
 	});	
 });
 
@@ -39,7 +39,7 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 
 chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
    	tabs.delete(removedTabId);
-   	ads.delete(tabId);
+   	ads.delete(removedTabId);
    	console.log("tabID: " + removedTabId + "replaced, length now: " + tabs.size);
 });
 
@@ -67,7 +67,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 
 			if(typeof tabEntry === "undefined") {	//check if an entry exists for this tab
 				var reqMap = new Map();
-				reqMap.set(requestId, {url: details.url});
+				reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false});
 				tabs.set(tabId, reqMap);
 			}
 			
@@ -75,7 +75,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 				var reqEntry = tabEntry.get(requestId);
 
 				if(typeof reqEntry === "undefined") {	//check if requestId is already used
-					tabEntry.set(requestId, {url: details.url});
+					tabEntry.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false});
 				}
 				else {
 					console.log("onBeforeRequest: requestId already in map");
@@ -120,10 +120,49 @@ chrome.webRequest.onCompleted.addListener(function (details) {
 			if(typeof tabEntry !== "undefined") {	//check if an entry exists for this tab
 				var reqEntry = tabEntry.get(requestId);
 				if(typeof reqEntry !== "undefined") {	//check if requestId is already used
+					reqEntry.completed = details.timeStamp;
 					reqEntry.finished = true;
 				}
 				else {
 					console.log("onCompleted: requestId not in map");
+				}
+			}
+		}
+	},
+	{urls: ["<all_urls>"]}
+);
+
+chrome.webRequest.onSendHeaders.addListener(function (details) {
+		var tabId = details.tabId;
+		var requestId = details.requestId;
+		if(tabId && tabId !== -1) {	//check if tabId is valid
+	  		var tabEntry = tabs.get(tabId);
+			if(typeof tabEntry !== "undefined") {	//check if an entry exists for this tab
+				var reqEntry = tabEntry.get(requestId);
+				if(typeof reqEntry !== "undefined") {	//check if requestId is already used
+					reqEntry.requestSent = details.timeStamp;
+				}
+				else {
+					console.log("onSendHeaders: requestId not in map");
+				}
+			}
+		}
+	},
+	{urls: ["<all_urls>"]}
+);
+
+chrome.webRequest.onResponseStarted.addListener(function (details) {
+		var tabId = details.tabId;
+		var requestId = details.requestId;
+		if(tabId && tabId !== -1) {	//check if tabId is valid
+	  		var tabEntry = tabs.get(tabId);
+			if(typeof tabEntry !== "undefined") {	//check if an entry exists for this tab
+				var reqEntry = tabEntry.get(requestId);
+				if(typeof reqEntry !== "undefined") {	//check if requestId is already used
+					reqEntry.responseReceived = details.timeStamp;
+				}
+				else {
+					console.log("onResponseStarted: requestId not in map");
 				}
 			}
 		}
