@@ -1,5 +1,26 @@
+
+
+var listAsArray = {};
+
 function parse(easyList) {
 	console.log("parsing...");
+	var rawFile = new XMLHttpRequest();
+	rawFile.open("GET", "https://easylist-downloads.adblockplus.org/easylist.txt", true);
+	rawFile.onreadystatechange = function ()
+	{
+		if(rawFile.readyState === 4)
+		{
+			if(rawFile.status === 200 || rawFile.status == 0)
+			{
+				var allText = rawFile.responseText;
+				alert(allText);
+				console.log("parsing finished");
+				console.log(allText + "1");
+			}
+		}
+	}
+	rawFile.send();
+
 };
 
 function match(url) {
