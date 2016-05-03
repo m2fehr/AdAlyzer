@@ -1,6 +1,6 @@
 
 
-function parse(easyList) {
+function parse() {
 	console.log("parsing...");
 	var rawFile = new XMLHttpRequest();
 	var link = "https://easylist-downloads.adblockplus.org/easylist.txt";

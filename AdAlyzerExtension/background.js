@@ -188,7 +188,7 @@ function getEasyList() {
 
 	            console.log("easyList downloaded");
 	 */
-	            parse(easyListTxt);
+	            parse();
 	            console.log("easyList parsed");
 	/*
 	        }
