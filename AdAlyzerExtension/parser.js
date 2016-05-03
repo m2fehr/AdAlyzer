@@ -4,6 +4,7 @@ function parse() {
 	console.log("parsing...");
 	var rawFile = new XMLHttpRequest();
 	var link = "https://easylist-downloads.adblockplus.org/easylist.txt";
+	var easyListAsArray;
 	rawFile.open("GET", link, true);
 	rawFile.onreadystatechange = function ()
 	{
@@ -12,9 +13,13 @@ function parse() {
 			if(rawFile.status === 200 || rawFile.status == 0)
 			{
 				var allText = rawFile.responseText;
-				alert(allText);
-				console.log("parsing finished");
 				console.log(allText.length);
+				//alert(allText);
+				easyListAsArray = allText.split('\n');
+				//lert(easyListAsArray);
+				console.log(easyListAsArray);
+				console.log("parsing finished");
+
 			}
 		}
 	}
