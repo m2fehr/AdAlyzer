@@ -1,11 +1,10 @@
 
 
-var listAsArray = {};
-
 function parse(easyList) {
 	console.log("parsing...");
 	var rawFile = new XMLHttpRequest();
-	rawFile.open("GET", "https://easylist-downloads.adblockplus.org/easylist.txt", true);
+	var link = "https://easylist-downloads.adblockplus.org/easylist.txt";
+	rawFile.open("GET", link, true);
 	rawFile.onreadystatechange = function ()
 	{
 		if(rawFile.readyState === 4)
@@ -15,7 +14,7 @@ function parse(easyList) {
 				var allText = rawFile.responseText;
 				alert(allText);
 				console.log("parsing finished");
-				console.log(allText + "1");
+				console.log(allText.length);
 			}
 		}
 	}
