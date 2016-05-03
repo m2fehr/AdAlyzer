@@ -173,6 +173,7 @@ chrome.webRequest.onResponseStarted.addListener(function (details) {
 function getEasyList() {
 	console.log("getEasyList function called");
 	//let parsedFilterData = {};
+	/*
 	var rawFile = new XMLHttpRequest();
 	var link = "https://easylist-downloads.adblockplus.org/easylist.txt";
 	rawFile.open("GET", link, true);
@@ -184,12 +185,17 @@ function getEasyList() {
 	        {
 	            var easyListTxt = rawFile.responseText;
 	            //alert(allText);
+
 	            console.log("easyList downloaded");
+	 */
 	            parse(easyListTxt);
 	            console.log("easyList parsed");
+	/*
 	        }
 	    }
 	}
+
 	rawFile.send();
+	*/
 };
 
