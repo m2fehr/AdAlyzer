@@ -175,7 +175,7 @@ function getEasyList() {
 	let parsedFilterData = {};
 	var rawFile = new XMLHttpRequest();
 	var link = "https://easylist-downloads.adblockplus.org/easylist.txt";
-	rawFile.open("GET", link, false);
+	rawFile.open("GET", link, true);
 	rawFile.onreadystatechange = function ()
 	{
 	    if(rawFile.readyState === 4)
@@ -185,7 +185,7 @@ function getEasyList() {
 	            var easyListTxt = rawFile.responseText;
 	            //alert(allText);
 	            console.log("easyList downloaded");
-	            //parse(easyListTxt, parsedFilterData);
+	            parse(easyListTxt);
 	            console.log("easyList parsed");
 	        }
 	    }
