@@ -1,26 +1,71 @@
-<html>
+<html lang="en">
 	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="jQuery/jquery-ui-1.11.4/jquery-ui.css">
+
+  		<script src="jQuery/jquery-2.2.3.min.js"></script>
+  		<script src="jQuery/jquery-ui-1.11.4/jquery-ui.js"></script>
 		<script type="text/javascript" src="popup.js"></script>
+		<script type="text/javascript" src="js/sorttable.js"></script>
+		<link rel="stylesheet" href="css/popup_style.css">
+
 	</head>
 	<body>
-		<style type="text/css">
-
-			div#container {
-				width: 150px;
-				height: 150px;
-			}
-
-			div#title {
-				font-size: 150%;
-			}
-			
-		</style>
 		<div id='container'>
-			<div id="title">
-				<span>AdAlyzer</span>
+			<div id="tabs">
+				<ul>
+    				<li><a href="#tabs-1">Overview</a></li>
+				    <li><a href="#tabs-2">Page Rating</a></li>
+				    <li><a href="#tabs-3">Elements</a></li>
+				</ul>
+
+				<div id="tabs-1">
+					<div id="title">
+						<span>AdAlyzer</span>
+					</div>
+
+					<p>Requests: <span id='reqsTotal'>0</span></p>
+					<p>Ads: <span id='adsTotal'>0</span></p>
+					<p>Tracker: <span id='trackerTotal'>0</span></p>
+					<p>Content: <span id='trackerTotal'>0</span></p>
+
+				</div>
+
+				<div id="tabs-2">
+					<div id="title">
+						<span>AdAlyzer</span>
+					</div>
+					
+					<p>Werbebelastung: <span style="background-color:#FE2E2E">hoch</span></p>
+					<p>Trackerbelastung: <span style="background-color:#FE9A2E">mittel</span></p>
+					<p>Page Load Time: <span style="background-color:#01DF01">tief</span></p>
+					
+				</div>
+
+				<div id="tabs-3">
+					<!-- Table Start -->
+					<div style="height:250px; overflow:auto;">
+					<table id="reqTable" class="table-fill sortable">
+						<thead>
+							<tr>
+								<th class="text-left sorttable_numeric">RequestId</th>
+								<th class="text-left sorttable_numeric">Waiting(ms)</th>
+								<th class="text-left sorttable_numeric">Downloading(ms)</th>
+							</tr>
+						</thead>
+						
+						<tbody id="reqTableBody" class="table-hover">
+							<td>1</td>
+							<td>1.11</td>
+							<td>1.11</td>
+						</tbody>
+					</table>
+					</div>
+					<!-- Table End -->
+				</div>
+
 			</div>
-			<p>Requests: <span id='reqsTotal'>Loading...</span></p>
-			<p>Ads: <span id='adsTotal'>Loading...</span></p>
+
 		</div>
 	</body>
 </html>
