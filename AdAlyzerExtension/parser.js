@@ -36,7 +36,8 @@ function parse() {
 					//URLWithSubdomain zeigt an, ob der matchrule http, https, subdomain vorangehen kann (|| am Anfang)
 					//Matchrule enthält den mit der URL zu vergleichenden String.
 					//OptionList enthält die für diese Matchrule geltenden Regeln.
-					var rule = {ExceptionRule: 0, Options: 0, URLStart: 0, URLEnd: 0, URLWithSubdomain: 0, Matchrule: "", OptionList: []};
+					//DomainList enthält die URLs, welche in der Option domain=... definiert wurden.
+					var rule = {ExceptionRule: 0, Options: 0, URLStart: 0, URLEnd: 0, URLWithSubdomain: 0, Matchrule: "", OptionList: [], DomainList: []};
 
 					console.log(temp);
 					console.log(rule);
@@ -49,7 +50,7 @@ function parse() {
 							//Whitelist beginnt hier
 							whitelist = 1;
 
-						//Analysieren, ob Ende der Whitelist.
+							//Analysieren, ob Ende der Whitelist.
 						}else if (temp.indexOf("***") != -1 && temp.indexOf("easylist:easylist") != -1 && temp.indexOf("whitelist") == -1){
 
 							//Whitelist endet hier
@@ -72,19 +73,60 @@ function parse() {
 						}
 					}
 
+					/*TODO:
+					Behandeln der zu versteckenden Elemente (###, ##., ##)
 
+					--> Beachten ob Whitelist (ebenfalls werbung)
+					--> Ausnahmeregeln (#@#, #@##) hier regeln oder bei matchrule?
+					 */
 
+					//Testen ob es Optionen gibt.
+					var pos = temp.indexOf("$");
+					if(pos != -1) {
+						//Setzen des Flags.
+						rule.Options = 1;
+
+						//Extrahieren der Optionen aus temp und speichern in OptionList.
+						var rules = temp.substring(pos + 1);
+						temp = temp.substring(0, pos);
+
+						//Speichern der Regeln
+						rules = rules.split(',');
+						for (var k = 0; k < rules.length; k++) {
+							var x = rules[k];
+							rule.OptionList.push(x);
+							if(x.indexOf("domain") != -1){
+
+							}
+						}
+
+					}
+
+					/*TODO:
+					URLStart (Zeichen | am anfang der regel
+					 */
+
+					/*TODO:
+					URLEnd (Zeichen | am ende der regel) ACHTUNG: Nicht immer nur ein | am ende. Testen wie korrekt.
+					 */
+
+					/*TODO:
+					URLWithSubdomain (Zeichen || am anfang der regel)
+					 */
+
+					/*TODO:
+					temp zu matchrule hinzufügen. ersetzen der Zeichen durch regex (*,^,#@#, #@##,...)
+					 */
 
 					matching_rules.push(rule);
 				}
 
 				console.log(matching_rules);
-
 				console.log("parsing finished");
 
 			}
 		}
-	}
+	};
 	rawFile.send();
 
 };
