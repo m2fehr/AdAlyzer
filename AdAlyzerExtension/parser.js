@@ -5,7 +5,9 @@ function parse() {
 	var rawFile = new XMLHttpRequest();
 	var link = "https://easylist-downloads.adblockplus.org/easylist.txt";
 	var easyListAsArray;
-	var matching_rules = [];
+
+
+	var rule_List = {matching_rules: [], hiding_rules: [], };
 	rawFile.open("GET", link, true);
 	rawFile.onreadystatechange = function ()
 	{
@@ -66,6 +68,7 @@ function parse() {
 						if(whitelist == 0) {
 							//Ist nicht Whitelist. Ist Ausnahmeregel und keine Werbung.
 							rule.ExceptionRule = 1;
+							temp.slice(2);
 						}else{
 							//Ist Whitelist. Ist Werbung, welche jedoch nicht blockiert wird.
 							//Entfernen der @@ und weiterfahren wie mit normaler Regel.
@@ -93,32 +96,40 @@ function parse() {
 						//Speichern der Regeln
 						rules = rules.split(',');
 						for (var k = 0; k < rules.length; k++) {
-							var x = rules[k];
-							rule.OptionList.push(x);
-							if(x.indexOf("domain") != -1){
+							var str = rules[k];
 
+							//Fall "Domain="-Regel, speichern aller spezifizierten Domains in der DomainList.
+							if(str.indexOf("domain") != -1){
+								var temppos = str.indexOf("=");
+								var temprules = str.slice(temppos+1);
+								str=str.slice(0, temppos);
+								temprules = temprules.split('|');
+								for(var z = 0; z<temprules.length; z++){
+									rule.DomainList.push(temprules[z]);
+								}
 							}
+							rule.OptionList.push(str);
 						}
+
+						/*TODO:
+						 URLStart (Zeichen | am anfang der regel
+						 */
+
+						/*TODO:
+						 URLEnd (Zeichen | am ende der regel) ACHTUNG: Nicht immer nur ein | am ende. Testen wie korrekt.
+						 */
+
+						/*TODO:
+						 URLWithSubdomain (Zeichen || am anfang der regel)
+						 */
+
+						/*TODO:
+						 temp zu matchrule hinzufügen. ersetzen der Zeichen durch regex (*,^,#@#, #@##,...)
+						 */
 
 					}
 
-					/*TODO:
-					URLStart (Zeichen | am anfang der regel
-					 */
-
-					/*TODO:
-					URLEnd (Zeichen | am ende der regel) ACHTUNG: Nicht immer nur ein | am ende. Testen wie korrekt.
-					 */
-
-					/*TODO:
-					URLWithSubdomain (Zeichen || am anfang der regel)
-					 */
-
-					/*TODO:
-					temp zu matchrule hinzufügen. ersetzen der Zeichen durch regex (*,^,#@#, #@##,...)
-					 */
-
-					matching_rules.push(rule);
+					rule_List.matching_rules.push(rule);
 				}
 
 				console.log(matching_rules);
