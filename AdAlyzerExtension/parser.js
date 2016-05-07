@@ -167,19 +167,89 @@ function parse() {
 						//Test ob ###.
 						else if(temp.indexOf("###") != -1){
 							//ID, welche auf bestimmte Domains beschränkt ist.
+							//search.safefinder.com,search.snap.do,search.snapdo.com###ATopD
+
+							//setzen der Parameter auf der rule.
+							rule.HidingOption = "id";
+							rule.HidingRule = 1;
+
+							//unterteilen des strings in domains und matchrule.
+							var position = temp.indexOf("###");
+							var substrng = temp.slice(0, position);
+							temp = temp.slice(position + 3);
+
+							//erstellen eines Arrays mit den domains und hinzufügen zur domainlist.
+							substrng = substrng.split(",");
+							for(var ii = 0; ii<substrng.length; ii++){
+								rule.DomainList.push(substrng[ii]);
+							}
+
+							//id als matchrule speichern.
+							rule.Matchrule = temp;
+
+							continue;
 						}
 
 						else if(temp.indexOf("##.") != -1){
 							//class, welche auf bestimmte Domains beschränkt ist.
+							//irna.ir,journalofaccountancy.com,newvision.co.ug##.Advertisement
+
+							//setzen der Parameter auf der rule
+							rule.HidingOption = "class";
+							rule.HidingRule = 1;
+
+							//unterteilen von temp in domains und matchrule
+							var positionx = temp.indexOf("##.");
+							var substrngx = temp.slice(0, positionx);
+							temp = temp.slice(positionx + 3);
+
+							//erstellen des arrays mit den domains und hinzufügen zur domainlist
+							substrngx = substrngx.split(",");
+							for(var iix = 0; iix<substrngx.length; iix++){
+								rule.DomainList.push(substrngx[iix]);
+							}
+
+							//class als matchrule speichern
+							rule.Matchrule = temp;
+
+							continue;
 						}
 
 						else if(temp.indexOf("##") != -1){
 							//html-tag
+							//4chan.org,crackdump.com##[width="468"]
+
+							//setzen der Parameter auf der rule
+							rule.HidingOption = "html-tag";
+							rule.HidingRule = 1;
+
+							//unterteilen von temp in domains und matchrule
+							var positiony = temp.indexOf("##");
+							var substrngy = temp.slice(0, positiony);
+							temp = temp.slice(positiony + 2);
+
+							//erstellen des arrays mit den domains und hinzufügen zur domainlist
+							substrngy = substrngy.split(",");
+							for(var iix = 0; iix<substrngy.length; iix++){
+								rule.DomainList.push(substrngy[iix]);
+							}
+
+							//html-tag info als matchrule speichern
+							rule.Matchrule = temp;
+
+							/*
+							 TODO:
+							 temp enthält (nach entfernen der ##) noch den html-tag (falls einer vorhanden) sowie Klammern und allenfalls Sonderzeichen (Bsp: div[id^="div-adtech-ad-"]) muss bereinigt bzw. zu regex umgeformt werden.
+							 allenfalls kann der html-tag auch als HidingOption hinzugefügt werden.
+							 */
+
+							continue;
 						}
 
 						else{
 							//allenfalls unbekannte regel. alert?
 							//# könnte auch teil der URL etc. sein.
+							alert("unbekannte regel: "+temp);
 						}
 
 						/*
@@ -218,24 +288,32 @@ function parse() {
 							rule.OptionList.push(str);
 						}
 
-						/*TODO:
+						/*
+						TODO:
 						 URLStart (Zeichen | am anfang der regel
 						 */
 
-						/*TODO:
+						/*
+						TODO:
 						 URLEnd (Zeichen | am ende der regel) ACHTUNG: Nicht immer nur ein | am ende. Testen wie korrekt.
 						 */
 
-						/*TODO:
+						/*
+						TODO:
 						 URLWithSubdomain (Zeichen || am anfang der regel)
 						 */
 
-						/*TODO:
+						/*
+						TODO:
 						 temp zu matchrule hinzufügen. ersetzen der Zeichen durch regex (*,^,#@#, #@##,...)
 						 */
 
 					}
 
+					/*
+					TODO: Important!!!
+					bei den continue's werden die rules zwar korrekt erstellt, jedoch nicht zur rulelist hinzugefügt da die for-loop vorher verlassen wird. Wie regeln? verschieben des rule_List.push, aufruf vor continue oder ohne continue?
+					 */
 					rule_List.push(rule);
 				}
 
