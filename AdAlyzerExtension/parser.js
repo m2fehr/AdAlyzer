@@ -231,8 +231,8 @@ function parse() {
 
 							//erstellen des arrays mit den domains und hinzufügen zur domainlist
 							substrngy = substrngy.split(",");
-							for(var iix = 0; iix<substrngy.length; iix++){
-								rule.DomainList.push(substrngy[iix]);
+							for(var iiq = 0; iiq<substrngy.length; iiq++){
+								rule.DomainList.push(substrngy[iiq]);
 							}
 
 							//html-tag info als matchrule speichern
@@ -287,7 +287,7 @@ function parse() {
 
 							//erstellen des arrays mit den domains und hinzufügen zur domainlist
 							substrngexep2 = substrngexep2.split(",");
-							for(var county = 0; countx<substrngexep2.length; county++){
+							for(var county = 0; county<substrngexep2.length; county++){
 								rule.DomainList.push(substrngexep2[county]);
 							}
 
