@@ -190,7 +190,8 @@ function parse() {
 							continue;
 						}
 
-						else if(temp.indexOf("##.") != -1){
+						else if(temp.indexOf("##.") != -1 && temp.indexOf("@#") == -1){
+							//#@#. ist eine Ausnahmeregel welche ausgeschlossen werden muss.
 							//class, welche auf bestimmte Domains beschränkt ist.
 							//irna.ir,journalofaccountancy.com,newvision.co.ug##.Advertisement
 
@@ -215,8 +216,8 @@ function parse() {
 							continue;
 						}
 
-						else if(temp.indexOf("##") != -1){
-							//html-tag
+						else if(temp.indexOf("##") != -1 && temp.indexOf("@#") == -1){
+							//html-tag. #@#, #@## sind valide ExceptionRules und müssen hier daher ausgeschlossen werden.
 							//4chan.org,crackdump.com##[width="468"]
 
 							//setzen der Parameter auf der rule
@@ -246,15 +247,65 @@ function parse() {
 							continue;
 						}
 
+						//Behandeln der Ausnahmeregeln #@## (ID), #@#.(class)
+						//Beides sind jeweils Ausnahmeregeln für Werbungen, welche jedoch zugelassen werden (Whitelist) müssen also dennoch als Werbung gezählt werden.
+						else if(temp.indexOf("#@##") != -1){
+							//3dmark.com,yougamers.com#@##takeover_ad
+
+							//setzten der Parameter der rule
+							rule.HidingOption = "id";
+							rule.HidingRule = 1;
+
+							//unterteilen in domains und matchrule
+							var positionexep = temp.indexOf("#@##");
+							var substrngexep = temp.slice(positionexep + 4);
+							temp = temp.slice(0, positionexep + 4);
+
+							//erstellen des arrays mit den domains und hinzufügen zur domainlist
+							substrngexep = substrngexep.split(",");
+							for(var countx = 0; countx<substrngexep.length; countx++){
+								rule.DomainList.push(substrngexep[countx]);
+							}
+
+							//id als matchrule speichern
+							rule.Matchrule = temp;
+
+							continue;
+						}
+
+						else if(temp.indexOf("#@#.") != -1){
+							//bash.fm,tbns.com.au#@#.ad-block
+
+							//setzten der Parameter der rule
+							rule.HidingOption = "class";
+							rule.HidingRule = 1;
+
+							//unterteilen in domains und matchrule
+							var positionexep2 = temp.indexOf("#@#.");
+							var substrngexep2 = temp.slice(positionexep2 + 4);
+							temp = temp.slice(0, positionexep2 + 4);
+
+							//erstellen des arrays mit den domains und hinzufügen zur domainlist
+							substrngexep2 = substrngexep2.split(",");
+							for(var county = 0; countx<substrngexep2.length; county++){
+								rule.DomainList.push(substrngexep2[county]);
+							}
+
+							//id als matchrule speichern
+							rule.Matchrule = temp;
+
+							continue;
+						}
+
 						else{
-							//allenfalls unbekannte regel. alert?
+							//allenfalls unbekannte regel.
 							//# könnte auch teil der URL etc. sein.
-							alert("unbekannte regel: "+temp);
+							//alert("unbekannte regel: "+temp);
 						}
 
 						/*
 						 TODO:
-						 Auch hier scheint es Spezialregeln zu geben (infowars.com##.entry-content > div + div + * + [class]) Auf der Seite von AdBlockPlus wird dies jedoch nicht erwähnt...
+						 Auch hier scheint es Spezialregeln mit CSS selektoren zu geben (infowars.com##.entry-content > div + div + * + [class]) Auf der Seite von AdBlockPlus wird dies jedoch nicht klar erwähnt...
 						 */
 					}
 
@@ -288,27 +339,28 @@ function parse() {
 							rule.OptionList.push(str);
 						}
 
-						/*
-						TODO:
-						 URLStart (Zeichen | am anfang der regel
-						 */
-
-						/*
-						TODO:
-						 URLEnd (Zeichen | am ende der regel) ACHTUNG: Nicht immer nur ein | am ende. Testen wie korrekt.
-						 */
-
-						/*
-						TODO:
-						 URLWithSubdomain (Zeichen || am anfang der regel)
-						 */
-
-						/*
-						TODO:
-						 temp zu matchrule hinzufügen. ersetzen der Zeichen durch regex (*,^,#@#, #@##,...)
-						 */
-
 					}
+
+
+					/*
+					 TODO:
+					 URLStart (Zeichen | am anfang der regel
+					 */
+
+					/*
+					 TODO:
+					 URLEnd (Zeichen | am ende der regel) ACHTUNG: Nicht immer nur ein | am ende. Testen wie korrekt.
+					 */
+
+					/*
+					 TODO:
+					 URLWithSubdomain (Zeichen || am anfang der regel)
+					 */
+
+					/*
+					 TODO:
+					 temp zu matchrule hinzufügen. ersetzen der Zeichen durch regex (*,^,#@#, #@##,...)
+					 */
 
 					/*
 					TODO: Important!!!
