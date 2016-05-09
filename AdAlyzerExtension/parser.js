@@ -345,21 +345,13 @@ function parse() {
 					/*
 					 TODO:
 					 URLStart (Zeichen | am anfang der regel
-					 */
-
-					/*
-					 TODO:
-					 URLEnd (Zeichen | am ende der regel) ACHTUNG: Nicht immer nur ein | am ende. Testen wie korrekt.
-					 */
-
-					/*
-					 TODO:
+					 URLEnd (Zeichen | am ende der regel) ACHTUNG: Nicht immer nur ein | am ende. Testen wie korrekt. | wird auch zum Aufzählen von Domains verwendet.
 					 URLWithSubdomain (Zeichen || am anfang der regel)
 					 */
 
 					/*
 					 TODO:
-					 temp zu matchrule hinzufügen. ersetzen der Zeichen durch regex (*,^,#@#, #@##,...)
+					 temp zu matchrule hinzufügen. ersetzen der Zeichen durch regex (*,^,|,||,...)
 					 */
 
 					/*
