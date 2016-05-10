@@ -1,8 +1,8 @@
 {
-	"name": "MyExtension",
+	"name": "AdAlyzer",
 	"version": "0.3",
 	"manifest_version" : 2,
-	"description": "Count Images on Page",
+	"description": "Analyzes requests on websites",
 	"background" : {"scripts": ["parser.js", "background.js"]},
 	
 	"browser_action": {
