@@ -7,6 +7,7 @@ function parse() {
 	console.log("parsing...");
 	var rawFile = new XMLHttpRequest();
 	var link = "https://easylist-downloads.adblockplus.org/easylist.txt";
+	//um lokale Files zu laden: link = "file:///C:/your/path/to/file.txt";
 
 	//Hier wird die easyList als Array gespeichert.
 	var easyListAsArray;

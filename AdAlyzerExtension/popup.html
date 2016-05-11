@@ -28,7 +28,9 @@
 						<span class="flexItemLeft">Requests:</span><span id='reqsTotal' class="flexItemRight">0</span>
 						<span class="flexItemLeft">Ads:</span> <span id='adsTotal' class="flexItemRight">0</span>
 						<span class="flexItemLeft">Tracker:</span><span id='trackerTotal' class="flexItemRight">0</span>
-						<span class="flexItemLeft">Content:</span><span id='trackerTotal' class="flexItemRight">0</span>
+						<span class="flexItemLeft">Content:</span><span id='contentTotal' class="flexItemRight">0</span>
+						<span class="flexItemLeft">Ladezeit(DOM):</span><span id='DOMTime' class="flexItemRight">0</span>
+						<span class="flexItemLeft">Ladezeit komplett:</span><span id='LoadTime' class="flexItemRight">0</span>
 					</div>
 
 				</div>
@@ -39,9 +41,10 @@
 						<br>
 					</div>
 					<div class="flexContainer">
-						<span class="flexItemLeft">Werbebelastung:</span><span style="background-color:#FE2E2E" class="flexItemRight">hoch</span>
-						<span class="flexItemLeft">Trackerbelastung:</span><span style="background-color:#FE9A2E" class="flexItemRight">mittel</span>
-						<span class="flexItemLeft">Page Load Time:</span><span style="background-color:#01DF01" class="flexItemRight">tief</span>
+						<span class="flexItemLeft">Werbebelastung:</span><span id='adsRating' style="background-color:#FE2E2E" class="flexItemRight">hoch</span>
+						<span class="flexItemLeft">Trackerbelastung:</span><span id='trackerRating' style="background-color:#FE9A2E" class="flexItemRight">mittel</span>
+						<span class="flexItemLeft">Page Load Time:</span><span id='PLTRating' style="background-color:#01DF01" class="flexItemRight">tief</span>
+						<span class="flexItemLeft">Rating:</span><span id='totalRating' style="background-color:#01DF01" class="flexItemRight">tief</span>
 					</div>
 					
 				</div>
@@ -52,14 +55,14 @@
 					<table id="reqTable" class="table-fill sortable">
 						<thead>
 							<tr>
-								<th class="text-left sorttable_numeric">RequestId</th>
+								<th class="text-left">Type</th>
 								<th class="text-left sorttable_numeric">Waiting(ms)</th>
 								<th class="text-left sorttable_numeric">Downloading(ms)</th>
 							</tr>
 						</thead>
 						
 						<tbody id="reqTableBody" class="table-hover">
-							<td>1</td>
+							<td>Content</td>
 							<td>1.11</td>
 							<td>1.11</td>
 						</tbody>

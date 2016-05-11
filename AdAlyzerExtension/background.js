@@ -25,22 +25,46 @@ tabs.forEach(function(value, key, map) {
 
 */
 
+//Every Tab gets such a object in the tabs-Map
+tabEntry = function () {
+    return {
+        reqMap: new Map(),
+        plt: {dom: 0, load: 0},
+        elements: {ads: 0, tracker: 0, content: 0},
+        rating: {total: '?', plt: '?', ads: '?', tracking: '?'}
+    }
+};
+
+function resetTabEntry(entry) { //vlt effizienter gleich neues objekt zu erzeugen?
+	entry.reqMap.clear();
+	entry.plt.dom = 0;
+	entry.plt.load = 0;
+	entry.elements.ads = 0;
+	entry.elements.tracker = 0;
+	entry.elements.content = 0;
+	entry.rating.total = '?';
+	entry.rating.plt = '?';
+	entry.rating.ads = '?';
+	entry.rating.tracking = '?';
+};
+
+
 var tabs = new Map();
-var ads = new Map();
+//var ads = new Map();
 
 chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
    	tabs.delete(tabId);
-   	ads.delete(tabId);
-   	console.log("tabID: " + tabId + "closed, length now: " + tabs.size);
+   	//ads.delete(tabId);
+   	/*console.log("tabID: " + tabId + "closed, length now: " + tabs.size);
    	tabs.forEach(function(value, key, map) {
     	console.log("tabs[" + key + "] = " + value.size);
-	});
+	});*/
 });
 
 chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
    	tabs.delete(removedTabId);
-   	ads.delete(removedTabId);
-   	console.log("tabID: " + removedTabId + "replaced, length now: " + tabs.size);
+   	//ads.delete(removedTabId);
+   	//console.log("tabID: " + removedTabId + "replaced, length now: " + tabs.size);
 });
 
 //Reset the Counter when new url is loaded
@@ -48,12 +72,13 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	if (changeInfo.status === "loading") {
 		
 		//tabs.set(tabId, 0);
-		var reqs = tabs.get(tabId);
+		/*var reqs = tabs.get(tabId);
 		if(typeof reqs !== "undefined") {
 			reqs.clear();
 			console.log("reseted counter for tab " + tabId);
 		}
-		ads.set(tabId, 0);
+		ads.set(tabId, 0);*/
+		resetTabEntry(tabs.get(tabId));
 	}
 });
 
@@ -63,24 +88,41 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 
       	if(tabId && tabId !== -1) {	//check if tabId is valid
 
-      		var tabEntry = tabs.get(tabId);
+      		var entry = tabs.get(tabId);
 
-			if(typeof tabEntry === "undefined") {	//check if an entry exists for this tab
-				var reqMap = new Map();
-				reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false});
-				tabs.set(tabId, reqMap);
+			if(typeof entry === "undefined") {	//check if an entry exists for this tab
+				entry = tabEntry();
+				tabs.set(tabId, entry);
 			}
 			
-			else {
-				var reqEntry = tabEntry.get(requestId);
+			
+			var reqEntry = entry.reqMap.get(requestId);
 
-				if(typeof reqEntry === "undefined") {	//check if requestId is already used
-					tabEntry.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false});
+			if(typeof reqEntry === "undefined") {	//check if requestId is already used
+
+				//Differentiat between Content Type
+				var type = 'Content';
+				if(details.url.indexOf('ad') !== -1) {
+					type = 'Ads';
+					entry.elements.ads = entry.elements.ads + 1;
+					chrome.browserAction.setBadgeText({text: entry.elements.ads.toString(), tabId: tabId});
 				}
 				else {
-					console.log("onBeforeRequest: requestId already in map");
+					if((details.url.indexOf('track') !== -1) || (details.url.indexOf('analyt') !== -1)) {
+						type = 'Tracking';
+						entry.elements.tracker = entry.elements.tracker + 1;
+					}
+					else {
+						entry.elements.content = entry.elements.content + 1;
+					}
 				}
+
+				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type});
 			}
+			else {
+				console.log("onBeforeRequest: requestId already in map");
+			}
+		
 /*
       		//count requests
 			var reqCount = tabs.get(tabId);
@@ -93,7 +135,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 			}
 */
 			//count ads and update badge
-			if(details.url.indexOf('ad') !== -1) {	//ToDo: Check for Ads
+			/*if(details.url.indexOf('ad') !== -1) {	//ToDo: Check for Ads
 				var adsCount = ads.get(tabId);
 				if(typeof adsCount !== "undefined") {
 					adsCount = adsCount + 1;
@@ -103,8 +145,9 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 					adsCount = 1;
 					ads.set(tabId, 1);
 				}
-				chrome.browserAction.setBadgeText({text: adsCount.toString(), tabId: tabId});
-			} 
+				entry.elements.ads = entry.elements.ads + 1;
+				chrome.browserAction.setBadgeText({text: entry.elements.ads.toString(), tabId: tabId});
+			} */
 
 		}
     },
@@ -116,9 +159,9 @@ chrome.webRequest.onCompleted.addListener(function (details) {
 		var tabId = details.tabId;
 		var requestId = details.requestId;
 		if(tabId && tabId !== -1) {	//check if tabId is valid
-	  		var tabEntry = tabs.get(tabId);
-			if(typeof tabEntry !== "undefined") {	//check if an entry exists for this tab
-				var reqEntry = tabEntry.get(requestId);
+	  		var entry = tabs.get(tabId);
+			if(typeof entry !== "undefined") {	//check if an entry exists for this tab
+				var reqEntry = entry.reqMap.get(requestId);
 				if(typeof reqEntry !== "undefined") {	//check if requestId is already used
 					reqEntry.completed = details.timeStamp;
 					reqEntry.finished = true;
@@ -136,9 +179,9 @@ chrome.webRequest.onSendHeaders.addListener(function (details) {
 		var tabId = details.tabId;
 		var requestId = details.requestId;
 		if(tabId && tabId !== -1) {	//check if tabId is valid
-	  		var tabEntry = tabs.get(tabId);
-			if(typeof tabEntry !== "undefined") {	//check if an entry exists for this tab
-				var reqEntry = tabEntry.get(requestId);
+	  		var entry = tabs.get(tabId);
+			if(typeof entry !== "undefined") {	//check if an entry exists for this tab
+				var reqEntry = entry.reqMap.get(requestId);
 				if(typeof reqEntry !== "undefined") {	//check if requestId is already used
 					reqEntry.requestSent = details.timeStamp;
 				}
@@ -155,9 +198,9 @@ chrome.webRequest.onResponseStarted.addListener(function (details) {
 		var tabId = details.tabId;
 		var requestId = details.requestId;
 		if(tabId && tabId !== -1) {	//check if tabId is valid
-	  		var tabEntry = tabs.get(tabId);
-			if(typeof tabEntry !== "undefined") {	//check if an entry exists for this tab
-				var reqEntry = tabEntry.get(requestId);
+	  		var entry = tabs.get(tabId);
+			if(typeof entry !== "undefined") {	//check if an entry exists for this tab
+				var reqEntry = entry.reqMap.get(requestId);
 				if(typeof reqEntry !== "undefined") {	//check if requestId is already used
 					reqEntry.responseReceived = details.timeStamp;
 				}
@@ -168,6 +211,23 @@ chrome.webRequest.onResponseStarted.addListener(function (details) {
 		}
 	},
 	{urls: ["<all_urls>"]}
+);
+
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        // This cache stores page load time for each tab, so they don't interfere
+        /*chrome.storage.local.get('cache', function(data) {
+            if (!data.cache) data.cache = {};
+            data.cache['tab' + sender.tab.id] = request.timing;
+            chrome.storage.local.set(data);
+        });
+        chrome.browserAction.setBadgeText({text: request.time, tabId: sender.tab.id});*/
+		var entry = tabs.get(sender.tab.id);
+        if(typeof entry !== "undefined") {
+        	entry.plt.dom = request.DOMTime;
+        	entry.plt.load = request.loadTime;
+        }
+    }
 );
 
 function getEasyList() {
