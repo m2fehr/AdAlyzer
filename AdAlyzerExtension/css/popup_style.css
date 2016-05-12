@@ -7,7 +7,7 @@ div#title {
 
 div#container {
   width: 400px;
-  height: 400px;
+  height: 100%;
 }
 
 .flexContainer {
@@ -154,4 +154,8 @@ td.text-center {
 
 td.text-right {
   text-align: right;
+}
+
+.marginTop {
+  margin-top: 20px;
 }
