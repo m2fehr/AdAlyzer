@@ -42,42 +42,26 @@ function resetTabEntry(entry) { //vlt effizienter gleich neues objekt zu erzeuge
 	entry.elements.ads = 0;
 	entry.elements.tracker = 0;
 	entry.elements.content = 0;
-	entry.rating.total = '?';
-	entry.rating.plt = '?';
-	entry.rating.ads = '?';
-	entry.rating.tracking = '?';
+	entry.rating.total = '';
+	entry.rating.plt = '';
+	entry.rating.ads = '';
+	entry.rating.tracking = '';
 };
 
 
 var tabs = new Map();
-//var ads = new Map();
 
 chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
    	tabs.delete(tabId);
-   	//ads.delete(tabId);
-   	/*console.log("tabID: " + tabId + "closed, length now: " + tabs.size);
-   	tabs.forEach(function(value, key, map) {
-    	console.log("tabs[" + key + "] = " + value.size);
-	});*/
 });
 
 chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
    	tabs.delete(removedTabId);
-   	//ads.delete(removedTabId);
-   	//console.log("tabID: " + removedTabId + "replaced, length now: " + tabs.size);
 });
 
 //Reset the Counter when new url is loaded
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	if (changeInfo.status === "loading") {
-		
-		//tabs.set(tabId, 0);
-		/*var reqs = tabs.get(tabId);
-		if(typeof reqs !== "undefined") {
-			reqs.clear();
-			console.log("reseted counter for tab " + tabId);
-		}
-		ads.set(tabId, 0);*/
 		resetTabEntry(tabs.get(tabId));
 	}
 });
@@ -108,7 +92,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 					chrome.browserAction.setBadgeText({text: entry.elements.ads.toString(), tabId: tabId});
 				}
 				else {
-					if((details.url.indexOf('track') !== -1) || (details.url.indexOf('analyt') !== -1)) {
+					if((details.url.indexOf('track') !== -1) || (details.url.indexOf('analy') !== -1)) {
 						type = 'Tracking';
 						entry.elements.tracker = entry.elements.tracker + 1;
 					}
@@ -117,38 +101,16 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 					}
 				}
 
+				//check for https
+				if(details.url.startsWith('https')) {
+					type = type + '(s)';
+				}
+
 				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type});
 			}
 			else {
 				console.log("onBeforeRequest: requestId already in map");
 			}
-		
-/*
-      		//count requests
-			var reqCount = tabs.get(tabId);
-			if(typeof reqCount !== "undefined") {
-				tabs.set(tabId, reqCount + 1);
-			}
-			else {
-				tabs.set(tabId, 1);
-				console.log("new Tab was added to Map, Id: " + tabId);
-			}
-*/
-			//count ads and update badge
-			/*if(details.url.indexOf('ad') !== -1) {	//ToDo: Check for Ads
-				var adsCount = ads.get(tabId);
-				if(typeof adsCount !== "undefined") {
-					adsCount = adsCount + 1;
-					ads.set(tabId, adsCount);
-				}
-				else {
-					adsCount = 1;
-					ads.set(tabId, 1);
-				}
-				entry.elements.ads = entry.elements.ads + 1;
-				chrome.browserAction.setBadgeText({text: entry.elements.ads.toString(), tabId: tabId});
-			} */
-
 		}
     },
     {urls: ["<all_urls>"]},

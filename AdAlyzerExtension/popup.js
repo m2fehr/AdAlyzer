@@ -5,34 +5,27 @@ $(function() {
 //Returns color from green to red according to value (0 - 1)
 function getColor(value){
     //value from 0 to 1
-    if (value < 0.0) {
-        value = 0.0;
-    } 
-    else {
-        if (value > 1.0)
-            value = 1.0;
-    }
     var hue=((1-value)*120).toString(10);
     return ["hsl(",hue,",100%,50%)"].join("");
 }
 
 //Returns string sehr tief/tief/mittel/hoch/sehr hoch according to value (0 - 1)
-function getClassificationText(value){
+function getClassificationText(value, tief, hoch){
     //value from 0 to 1
     if (value < 0.2) {
-        return "sehr tief";
+        return "sehr " + tief;
     } 
     else {
         if (value < 0.4)
-            return "tief";
+            return tief;
         else {
             if (value < 0.6)
                 return "mittel";
             else {
                 if (value < 0.8)
-                    return "hoch";
+                    return hoch;
                 else 
-                    return "sehr hoch";
+                    return "sehr " + hoch;
             }
         }
     }
@@ -46,7 +39,8 @@ window.addEventListener('load', function(evt) {
     var trackerTotal = document.getElementById('trackerTotal');
     var contentTotal = document.getElementById('contentTotal');
     var DOMTime = document.getElementById('DOMTime');
-    var LoadTime = document.getElementById('LoadTime');
+    var loadTime = document.getElementById('loadTime');
+    var pageRating = document.getElementById('pageRating');
     // Second Tab
     var adsRating = document.getElementById('adsRating');
     var trackerRating = document.getElementById('trackerRating');
@@ -64,32 +58,35 @@ window.addEventListener('load', function(evt) {
         var currentTabEntry = backgroundWindow.tabs.get(currentTab.id);
         var reqMap = currentTabEntry.reqMap;
 
+
+        // Second Tab
+        var value1 = currentTabEntry.elements.ads / reqMap.size * 4;
+        value1 = value1 > 1.0 ? 1.0 : value1;
+        adsRating.textContent = getClassificationText(value1, "tief", "hoch");
+        adsRating.style.backgroundColor = getColor(value1);
+
+        var value2 = currentTabEntry.elements.tracker / reqMap.size * 7;
+        value2 = value2 > 1.0 ? 1.0 : value2;
+        trackerRating.textContent = getClassificationText(value2, "tief", "hoch");
+        trackerRating.style.backgroundColor = getColor(value2);
+
+        var value3 = currentTabEntry.plt.load / 4;
+        value3 = value3 > 1.0 ? 1.0 : value3;
+        PLTRating.textContent = getClassificationText(value3, "tief", "hoch");
+        PLTRating.style.backgroundColor = getColor(value3);
+
+        var value4 = (value1 + value2 + value3) / 3;
+        totalRating.textContent = getClassificationText(value4, "gut", "schlecht");
+        totalRating.style.backgroundColor = getColor(value4);
+
         // First Tab
         reqsTotal.innerHTML = reqMap.size;
         adsTotal.innerHTML = currentTabEntry.elements.ads;
         trackerTotal.innerHTML = currentTabEntry.elements.tracker;
         contentTotal.innerHTML = currentTabEntry.elements.content;
-        DOMTime.innerHTML = currentTabEntry.plt.dom + "ms";
-        LoadTime.innerHTML = currentTabEntry.plt.load + "ms";
-
-        // Second Tab
-        var value1 = currentTabEntry.elements.ads / reqMap.size * 4;
-        adsRating.textContent = getClassificationText(value1);
-        adsRating.style.backgroundColor = getColor(value1);
-
-        var value2 = currentTabEntry.elements.tracker / reqMap.size * 7;
-        trackerRating.textContent = getClassificationText(value2);
-        trackerRating.style.backgroundColor = getColor(value2);
-
-        var value3 = currentTabEntry.plt.load / 4;
-        //if (value3 > 1.0)
-        //    value3 = 1.0;
-        PLTRating.textContent = getClassificationText(value3);
-        PLTRating.style.backgroundColor = getColor(value3);
-
-        var value4 = (value1 + value2 + value3) / 3;
-        totalRating.textContent = getClassificationText(value4);
-        totalRating.style.backgroundColor = getColor(value4);
+        DOMTime.innerHTML = currentTabEntry.plt.dom + "s";
+        loadTime.innerHTML = currentTabEntry.plt.load + "s";
+        pageRating.innerHTML = totalRating.textContent;
         
         // Third Tab
         while (tableBody.firstChild) {
@@ -115,21 +112,4 @@ window.addEventListener('load', function(evt) {
     });
     
 });
-
-
-/* Set Color from red to green
-function getColor(value){
-    //value from 0 to 1
-    var hue=((1-value)*120).toString(10);
-    return ["hsl(",hue,",100%,50%)"].join("");
-}
-var len=20;
-for(var i=0; i<=len; i++){
-    var value=i/len;
-    var d=document.createElement('div');
-    d.textContent="value="+value;
-    d.style.backgroundColor=getColor(value);
-    document.body.appendChild(d);
-}
-*/
 
