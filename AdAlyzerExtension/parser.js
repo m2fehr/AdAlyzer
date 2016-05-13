@@ -32,22 +32,25 @@ function parse() {
 				/*
 				TODO: Kommentar vor easyListAsArray = allText.split('\n'); entfernen
 				 */
-				//easyListAsArray = allText.split('\n');
+				easyListAsArray = allText.split('\n');
+				console.log(easyListAsArray.length);
 
 				/*
 				TODO: Entfernen, Teststring um Parser zu Testen!
 				 */
-				var teststring = "&ad_box_, -ad-banner., /ad-iframe., /au2m8_preloader/*, /contentad|, ://affiliate.$third-party, -120-600., /adServe/*$popup, ###AD_CONTROL_13, ##.six-ads-wrapper, games.com#@##Adcode, " +
-					"dormy.se,marthastewart.com#@##ad-background, earlyamerica.com,infojobs.net#@#.topads, ||4dsply.com^$third-party, ||62.27.51.163^$third-party,domain=~adlive.de.ip, ||d2ue9k1rhsumed.cloudfront.net^, " +
-					"||ticketkai.com/banner/, ||tipico.*/affiliate/$third-party, @@||code.jquery.com^$script,third-party,domain=uplod.it, |http://$image,third-party,domain=tinypic.com, beemp3s.org,mnn.com,streamtuner.me###adv, " +
-					"isup.me###container > .domain + p + br + center:last-child, localmoxie.com##.ads_tilte + .main_mid_ads, statistiks.co.uk,statistiks.com##.adz, mobilelikez.com##div > span:last-child > [id][class], " +
-					"@@.com/banners, @@||ykhandler.com/adframe.js, @@.com/*.js|$domain=openload.co, @@/adcode.js$domain=cityam.com|techworld.com, ! Game Empire Enterprises";
-				easyListAsArray = teststring.split(', ');
+				//var teststring = "&ad_box_, -ad-banner., /ad-iframe., /au2m8_preloader/*, /contentad|, ://affiliate.$third-party, -120-600., /adServe/*$popup, ###AD_CONTROL_13, ##.six-ads-wrapper, games.com#@##Adcode, " +
+				//	"dormy.se,marthastewart.com#@##ad-background, earlyamerica.com,infojobs.net#@#.topads, ||4dsply.com^$third-party, ||62.27.51.163^$third-party,domain=~adlive.de.ip, ||d2ue9k1rhsumed.cloudfront.net^, " +
+				//	"||ticketkai.com/banner/, ||tipico.*/affiliate/$third-party, @@||code.jquery.com^$script,third-party,domain=uplod.it, |http://$image,third-party,domain=tinypic.com, beemp3s.org,mnn.com,streamtuner.me###adv, " +
+				//	"isup.me###container > .domain + p + br + center:last-child, localmoxie.com##.ads_tilte + .main_mid_ads, statistiks.co.uk,statistiks.com##.adz, mobilelikez.com##div > span:last-child > [id][class], " +
+				//	"@@.com/banners, @@||ykhandler.com/adframe.js, @@.com/*.js|$domain=openload.co, @@/adcode.js$domain=cityam.com|techworld.com, ! Game Empire Enterprises, el33tonline.com###AdD";
+				//easyListAsArray = teststring.split(', ');
 
 				//alert(easyListAsArray);
 				console.log(easyListAsArray);
+
 				var whitelist = 0;
-console.log("beginne mit for-loop");
+
+				console.log("beginne mit for-loop");
 				for(var i = 1; i < easyListAsArray.length; i++){
 					//console.log("Start der for-loop");
 					//das erste Element der EasyList kann ignoriert werden, daher i = 1.
@@ -67,10 +70,9 @@ console.log("beginne mit for-loop");
 					//Matchrule enthält den mit der URL zu vergleichenden String ODER bei einer HidingRule der Name des Elements.
 					//OptionList enthält die für diese Matchrule geltenden Regeln.
 					//DomainList enthält ENTWEDER die URLs, welche in der Option domain=... definiert wurden, ODER bei einer HidingRule, welche nicht generell gilt, die entsprechenden URL's.
-					var rule = {ExceptionRule: 0, HidingRule: 0, Options: 0, URLStart: 0, URLEnd: 0, URLWithSubdomain: 0, HidingOption: "", Matchrule: "", OptionList: [], DomainList: []};
+					var rule = {ExceptionRule: 0, HidingRule: 0, Options: 0, HidingOption: "", Matchrule: "", OptionList: [], DomainList: []};
 
-					console.log(temp);
-					//console.log(rule);
+					//console.log(temp);
 
 					//gemäss Implementierung von AdBlocker Plus können Regeln fälschlicherweise mit " " oder \r beginnen bzw. enden. Muss behoben werden damit keine Fehler bei der weiteren Verarbeitung entstehen.
 					temp = temp.replace(/\r$/, '').trim();
@@ -129,12 +131,12 @@ console.log("beginne mit for-loop");
 								 Aktuell werden diese spezialregeln ignoriert und wie normale ids unbehandelt hinzugefügt.
 								 */
 
-								////id als Matchrule zu rule hinzufügen.
-								//rule.Matchrule = temp;
-                                //
-								////verarbeitung des Elementes abgeschlossen.
-								//rule_List.push(rule);
-								//continue;
+								//id als Matchrule zu rule hinzufügen.
+								rule.Matchrule = temp;
+
+								//verarbeitung des Elementes abgeschlossen.
+								rule_List.push(rule);
+								continue;
 							}
 							//test ob ##. (class)
 							else if(temp.indexOf("##.") != -1){
@@ -144,12 +146,12 @@ console.log("beginne mit for-loop");
 								//Löschen von ##.
 								temp.slice(3);
 
-								////class als matchrule zu rule hinzufügen.
-								//rule.Matchrule = temp;
-                                //
-								////verarbeitung des Elementes abgeschlossen.
-								//rule_List.push(rule);
-								//continue;
+								//class als matchrule zu rule hinzufügen.
+								rule.Matchrule = temp;
+
+								//verarbeitung des Elementes abgeschlossen.
+								rule_List.push(rule);
+								continue;
 							}
 
 							//testen ob ##
@@ -162,18 +164,18 @@ console.log("beginne mit for-loop");
 
 								//Element als matchrule zu rule hinzufügen.
 
-								//rule.Matchrule = temp;
-                                //
-								///*
-								//TODO:
-								//temp enthält (nach entfernen der ##) noch den html-tag sowie Klammern und allenfalls Sonderzeichen (Bsp: div[id^="div-adtech-ad-"]) muss bereinigt bzw. zu regex umgeformt werden.
-								//allenfalls kann der html-tag auch als HidingOption hinzugefügt werden.
-								// */
-                                //
-								////verarbeitung des Elementes abgeschlossen.
-								//rule_List.push(rule);
-                                //
-								//continue;
+								rule.Matchrule = temp;
+
+								/*
+								TODO:
+								temp enthält (nach entfernen der ##) noch den html-tag sowie Klammern und allenfalls Sonderzeichen (Bsp: div[id^="div-adtech-ad-"]) muss bereinigt bzw. zu regex umgeformt werden.
+								allenfalls kann der html-tag auch als HidingOption hinzugefügt werden.
+								 */
+
+								//verarbeitung des Elementes abgeschlossen.
+								rule_List.push(rule);
+
+								continue;
 							}
 
 							else{
@@ -194,7 +196,7 @@ console.log("beginne mit for-loop");
 							//unterteilen des strings in domains und matchrule.
 							var position = temp.indexOf("###");
 							var substrng = temp.slice(0, position);
-							temp = temp.slice(position + 3);
+							temp = temp.slice(position+3);
 
 							//erstellen eines Arrays mit den domains und hinzufügen zur domainlist.
 							substrng = substrng.split(",");
@@ -202,13 +204,13 @@ console.log("beginne mit for-loop");
 								rule.DomainList.push(substrng[ii]);
 							}
 
-							////id als matchrule speichern.
-							//rule.Matchrule = temp;
-                            //
-							////verarbeitung des Elementes abgeschlossen.
-							//rule_List.push(rule);
-                            //
-							//continue;
+							//id als matchrule speichern.
+							rule.Matchrule = temp;
+
+							//verarbeitung des Elementes abgeschlossen.
+							rule_List.push(rule);
+
+							continue;
 						}
 
 						else if(temp.indexOf("##.") != -1 && temp.indexOf("@#") == -1){
@@ -231,13 +233,13 @@ console.log("beginne mit for-loop");
 								rule.DomainList.push(substrngx[iix]);
 							}
 
-							////class als matchrule speichern
-							//rule.Matchrule = temp;
-                            //
-							////verarbeitung des Elementes abgeschlossen.
-							//rule_List.push(rule);
-                            //
-							//continue;
+							//class als matchrule speichern
+							rule.Matchrule = temp;
+
+							//verarbeitung des Elementes abgeschlossen.
+							rule_List.push(rule);
+
+							continue;
 						}
 
 						else if(temp.indexOf("##") != -1 && temp.indexOf("@#") == -1){
@@ -259,19 +261,19 @@ console.log("beginne mit for-loop");
 								rule.DomainList.push(substrngy[iiq]);
 							}
 
-							////html-tag info als matchrule speichern
-							//rule.Matchrule = temp;
-                            //
-							///*
-							// TODO:
-							// temp enthält (nach entfernen der ##) noch den html-tag (falls einer vorhanden) sowie Klammern und allenfalls Sonderzeichen (Bsp: div[id^="div-adtech-ad-"]) muss bereinigt bzw. zu regex umgeformt werden.
-							// allenfalls kann der html-tag auch als HidingOption hinzugefügt werden.
-							// */
-                            //
-							////verarbeitung des Elementes abgeschlossen.
-							//rule_List.push(rule);
-                            //
-							//continue;
+							//html-tag info als matchrule speichern
+							rule.Matchrule = temp;
+
+							/*
+							 TODO:
+							 temp enthält (nach entfernen der ##) noch den html-tag (falls einer vorhanden) sowie Klammern und allenfalls Sonderzeichen (Bsp: div[id^="div-adtech-ad-"]) muss bereinigt bzw. zu regex umgeformt werden.
+							 allenfalls kann der html-tag auch als HidingOption hinzugefügt werden.
+							 */
+
+							//verarbeitung des Elementes abgeschlossen.
+							rule_List.push(rule);
+
+							continue;
 						}
 
 						//Behandeln der Ausnahmeregeln #@## (ID), #@#.(class)
@@ -294,13 +296,13 @@ console.log("beginne mit for-loop");
 								rule.DomainList.push(substrngexep[countx]);
 							}
 
-							////id als matchrule speichern
-							//rule.Matchrule = temp;
-                            //
-							////verarbeitung des Elementes abgeschlossen.
-							//rule_List.push(rule);
-                            //
-							//continue;
+							//id als matchrule speichern
+							rule.Matchrule = temp;
+
+							//verarbeitung des Elementes abgeschlossen.
+							rule_List.push(rule);
+
+							continue;
 						}
 
 						else if(temp.indexOf("#@#.") != -1){
@@ -321,13 +323,13 @@ console.log("beginne mit for-loop");
 								rule.DomainList.push(substrngexep2[county]);
 							}
 
-							////id als matchrule speichern
-							//rule.Matchrule = temp;
-                            //
-							////verarbeitung des Elementes abgeschlossen.
-							//rule_List.push(rule);
-                            //
-							//continue;
+							//id als matchrule speichern
+							rule.Matchrule = temp;
+
+							//verarbeitung des Elementes abgeschlossen.
+							rule_List.push(rule);
+
+							continue;
 						}
 
 						else{
@@ -377,32 +379,75 @@ console.log("beginne mit for-loop");
 
 					/*
 					 TODO:
+					 temp zu Regex umformen.
 					 URLStart (Zeichen | am anfang der regel
 					 URLEnd (Zeichen | am ende der regel) ACHTUNG: Nicht immer nur ein | am ende. Testen wie korrekt. | wird auch zum Aufzählen von Domains verwendet.
 					 URLWithSubdomain (Zeichen || am anfang der regel)
 					 */
-					if(/\|/.test(temp)){
-						if(/^\|\|/.test(temp)){
-							temp=temp.slice(2);
 
+					//Entfernen unnötiger Wildcardfolgen
+					if(/\*\*+/.test(temp)) {
+						temp.replace(/\*\*+/g, '*');
+					}
+
+					//Characters, welche im Regex eine besondere (ungewollte) Bedeutung haben könnten, escapen (ausser *,|,^ --> separat gehandelt).
+					temp = temp.replace(/([^a-zA-Z0-9_\|\^\*])/g, '\\$1');
+
+					//^ ist in der Adblock-Synthax ein Platzhalter für Separatoren (alles ausser Buchstaben, Zahlen, _, ., %)
+					//WICHTIG: Bei Hiding-Rules kann ^ eine andere Bedeutung haben. Daher ist es wichig dass diese nicht mit den regeln hier behandelt werden.
+					temp = temp.replace(/\^/g, '[^\\-\\.\\%a-zA-Z0-9_]');
+
+					//* entspricht in .* --> ersetzen.
+					temp = temp.replace(/\*/g, '.*');
+
+					//Behandeln der Regeln | und ||.
+					if(/\|/.test(temp)){
+
+						//Test ob Regel mit || beginnt: nur (http(s):// und allenfalls Subdomains vor der Regel
+						if(/^\|\|/.test(temp)){
+							temp = temp.replace(/^\|\|/, '^[^\\/]+\\:\\/\\/([^\\/]+\\.)?');
+						}
+
+						//Test ob Regel mit | beginnt: Regel steht am Anfang der URL
+						else if(/^\|/.test(temp)){
+							temp = temp.replace(/^\|/, '^');
+						}
+
+						//Test ob Regel mit | endet: URL muss dort aufhören.
+						else if(/\|$/.test(temp)) {
+							temp = temp.replace(/\|$/, '$');
+						}
+
+						//alle anderen | in der Regel sollen Pipes darstellen.
+						else{
+							temp = temp.replace(/\|/g, '\\|');
 						}
 					}
 
+					//Ersetzen von * am Anfang und Ende der Regel (hat keinen Einfluss auf das Matchen)
+					temp = temp.replace(/^\.\*/, '');
+					temp = temp.replace(/\.\*$/, '');
+
+					//temp zu Regex machen.
+					rule.Matchrule = new RegExp(temp);
+
 					/*
-					 TODO:
+					 TODO: DONE
 					 temp zu matchrule hinzufügen. ersetzen der Zeichen durch regex (*,^,|,||,...)
 					 */
 
 					/*
-					TODO: Important!!!
+					TODO: Important!!! DONE
 					bei den continue's werden die rules zwar korrekt erstellt, jedoch nicht zur rulelist hinzugefügt da die for-loop vorher verlassen wird. Wie regeln? verschieben des rule_List.push, aufruf vor continue oder ohne continue?
 					 */
-					console.log('\n' + temp + '\n' + rule.DomainList+ "     " + rule.OptionList + '\n' + '\n');
+					//console.log(temp + '\n' + rule.Matchrule + "   /    " + rule.DomainList + "   /   " + rule.OptionList + '\n' + '\n');
+
 					rule_List.push(rule);
 				}
 
-				//console.log(matching_rules);
 				console.log("parsing finished");
+				console.log(rule_List.length);
+
 
 			}
 		}
