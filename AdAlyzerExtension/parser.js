@@ -385,6 +385,13 @@ function parse() {
 					 URLWithSubdomain (Zeichen || am anfang der regel)
 					 */
 
+					//Testen ob Regel bereits Regex ist. Wenn ja: bearbeitung abschliessen.
+					if(/^\/.+\/$/.test(temp)){
+						rule.Matchrule = temp;
+						rule_List.push(rule);
+						continue;
+					}
+
 					//Entfernen unnötiger Wildcardfolgen
 					if(/\*\*+/.test(temp)) {
 						temp.replace(/\*\*+/g, '*');
