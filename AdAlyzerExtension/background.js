@@ -195,9 +195,10 @@ chrome.runtime.onMessage.addListener(
 function getEasyList() {
 	console.log("getEasyList function called");
 	//let parsedFilterData = {};
-	/*
+
 	var rawFile = new XMLHttpRequest();
 	var link = "https://easylist-downloads.adblockplus.org/easylist.txt";
+	var easyListAsArray;
 	rawFile.open("GET", link, true);
 	rawFile.onreadystatechange = function ()
 	{
@@ -209,15 +210,26 @@ function getEasyList() {
 	            //alert(allText);
 
 	            console.log("easyList downloaded");
-	 */
-	            parse();
-	            console.log("easyList parsed");
-	/*
+				easyListAsArray = easyListTxt.split('\n');
+
+				//löschen des Speichers, damit allfällige alte versionen der EasyList gelöscht werden.
+				chrome.storage.local.clear();
+
+				//speichern des Arrays
+				chrome.storage.local.set({'easyList': easyListAsArray}, function(){
+					console.log("storing list successfull");
+
+					//aufrufen der parse() funktion.
+					/*TODO:
+					Dies ist ein asynchroner aufruf. die getEasyList methode wird terminieren, befor das Parsen abgeschlossen ist!!! lösung?
+					 */
+					parse();
+				});
 	        }
 	    }
-	}
-
+	};
+	console.log("getEasyList methode beendet...");
 	rawFile.send();
-	*/
-};
+
+}
 

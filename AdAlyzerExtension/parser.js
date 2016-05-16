@@ -5,34 +5,38 @@ function parse() {
 	Lesen des Codes auf eigene Gefahr.
 	 */
 	console.log("parsing...");
-	var rawFile = new XMLHttpRequest();
-	var link = "https://easylist-downloads.adblockplus.org/easylist.txt";
-	//um lokale Files zu laden: link = "file:///C:/your/path/to/file.txt";
+
+	var easyListAsArray;
+
+	//laden des Arrays mit der EasyList aus dem speicher.
+	chrome.storage.local.get('easyList', function(result){
+		easyListAsArray = result.easyList;
+
 
 	//Hier wird die easyList als Array gespeichert.
-	var easyListAsArray;
+	//var easyListAsArray;
 
 	/*
 	 In diesem Array wird die geparste EasyList gespeichert.
 	 Dabei stellt jedes Element des Arrays einen Eintrag der EasyList dar.
 	 */
-	var rule_List = [];
+	var parsedEasyList = [];
 
-	rawFile.open("GET", link, true);
-	rawFile.onreadystatechange = function ()
-	{
-		if(rawFile.readyState === 4)
-		{
-			if(rawFile.status === 200 || rawFile.status == 0)
-			{
-				var allText = rawFile.responseText;
-				console.log(allText.length);
-				//alert(allText);
+	//rawFile.open("GET", link, true);
+	//rawFile.onreadystatechange = function ()
+	//{
+	//	if(rawFile.readyState === 4)
+	//	{
+	//		if(rawFile.status === 200 || rawFile.status == 0)
+	//		{
+	//			var allText = rawFile.responseText;
+	//			console.log(allText.length);
+	//			alert(allText);
 
 				/*
 				TODO: Kommentar vor easyListAsArray = allText.split('\n'); entfernen
 				 */
-				easyListAsArray = allText.split('\n');
+				//easyListAsArray = allText.split('\n');
 				console.log(easyListAsArray.length);
 
 				/*
@@ -135,7 +139,7 @@ function parse() {
 								rule.Matchrule = temp;
 
 								//verarbeitung des Elementes abgeschlossen.
-								rule_List.push(rule);
+								parsedEasyList.push(rule);
 								continue;
 							}
 							//test ob ##. (class)
@@ -150,7 +154,7 @@ function parse() {
 								rule.Matchrule = temp;
 
 								//verarbeitung des Elementes abgeschlossen.
-								rule_List.push(rule);
+								parsedEasyList.push(rule);
 								continue;
 							}
 
@@ -173,7 +177,7 @@ function parse() {
 								 */
 
 								//verarbeitung des Elementes abgeschlossen.
-								rule_List.push(rule);
+								parsedEasyList.push(rule);
 
 								continue;
 							}
@@ -208,7 +212,7 @@ function parse() {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							rule_List.push(rule);
+							parsedEasyList.push(rule);
 
 							continue;
 						}
@@ -237,7 +241,7 @@ function parse() {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							rule_List.push(rule);
+							parsedEasyList.push(rule);
 
 							continue;
 						}
@@ -271,7 +275,7 @@ function parse() {
 							 */
 
 							//verarbeitung des Elementes abgeschlossen.
-							rule_List.push(rule);
+							parsedEasyList.push(rule);
 
 							continue;
 						}
@@ -300,7 +304,7 @@ function parse() {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							rule_List.push(rule);
+							parsedEasyList.push(rule);
 
 							continue;
 						}
@@ -327,7 +331,7 @@ function parse() {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							rule_List.push(rule);
+							parsedEasyList.push(rule);
 
 							continue;
 						}
@@ -388,7 +392,7 @@ function parse() {
 					//Testen ob Regel bereits Regex ist. Wenn ja: bearbeitung abschliessen.
 					if(/^\/.+\/$/.test(temp)){
 						rule.Matchrule = temp;
-						rule_List.push(rule);
+						parsedEasyList.push(rule);
 						continue;
 					}
 
@@ -445,22 +449,21 @@ function parse() {
 
 					/*
 					TODO: Important!!! DONE
-					bei den continue's werden die rules zwar korrekt erstellt, jedoch nicht zur rulelist hinzugefügt da die for-loop vorher verlassen wird. Wie regeln? verschieben des rule_List.push, aufruf vor continue oder ohne continue?
+					bei den continue's werden die rules zwar korrekt erstellt, jedoch nicht zur rulelist hinzugefügt da die for-loop vorher verlassen wird. Wie regeln? verschieben des parsedEasyList.push, aufruf vor continue oder ohne continue?
 					 */
 					//console.log(temp + '\n' + rule.Matchrule + "   /    " + rule.DomainList + "   /   " + rule.OptionList + '\n' + '\n');
 
-					rule_List.push(rule);
+					parsedEasyList.push(rule);
 				}
 
 				console.log("parsing finished");
-				console.log(rule_List.length);
+				console.log(parsedEasyList.length);
 
-
-			}
-		}
-	};
-	rawFile.send();
-
+		//speichern der parsedEasyList
+		chrome.storage.local.set({'parsedEasyList': parsedEasyList}, function(){
+			console.log("parsedEasyList gespeichert!");
+		});
+	});
 }
 
 function match(url) {
