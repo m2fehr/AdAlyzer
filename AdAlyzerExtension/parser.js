@@ -1,26 +1,35 @@
 
 
-function parse() {
+function parse(listname) {
 	/*
 	Lesen des Codes auf eigene Gefahr.
 	 */
 	console.log("parsing...");
 
 	var easyListAsArray;
+	var name = listname;
+
+	console.log("name der Liste: " + name);
 
 	//laden des Arrays mit der EasyList aus dem speicher.
-	chrome.storage.local.get('easyList', function(result){
-		easyListAsArray = result.easyList;
+	chrome.storage.local.get(name, function(result){
+		switch(name){
+			case "easyList":
+				easyListAsArray = result.easyList;
+				break;
+			case "easyPrivacy":
+				easyListAsArray = result.easyPrivacy;
+				break
+			default:
+				alert("unknown listname!!");
+		}
 
 
 	//Hier wird die easyList als Array gespeichert.
 	//var easyListAsArray;
 
-	/*
-	 In diesem Array wird die geparste EasyList gespeichert.
-	 Dabei stellt jedes Element des Arrays einen Eintrag der EasyList dar.
-	 */
-	var parsedEasyList = [];
+		//In diesem Array wird die geparste EasyList gespeichert. 	 Dabei stellt jedes Element des Arrays einen Eintrag der EasyList dar.
+		var parsedEasyList = [];
 
 	//rawFile.open("GET", link, true);
 	//rawFile.onreadystatechange = function ()
@@ -33,9 +42,6 @@ function parse() {
 	//			console.log(allText.length);
 	//			alert(allText);
 
-				/*
-				TODO: Kommentar vor easyListAsArray = allText.split('\n'); entfernen
-				 */
 				//easyListAsArray = allText.split('\n');
 				console.log(easyListAsArray.length);
 
@@ -84,17 +90,18 @@ function parse() {
 					//Ignorieren falls Kommentar (regel beginnt mit !)
 					if(temp.charAt(0) == '!'){
 						//Analysieren, ob Beginn der Whitelist.
-						if(temp.indexOf("***") != -1 && temp.indexOf("easylist:easylist") != -1 && temp.indexOf("whitelist") != -1){
+						if(temp.indexOf("***") != -1 && temp.indexOf("easylist:") != -1 && temp.indexOf("whitelist") != -1){
 
 							//Whitelist beginnt hier
 							whitelist = 1;
 
 							//Analysieren, ob Ende der Whitelist.
-						}else if (temp.indexOf("***") != -1 && temp.indexOf("easylist:easylist") != -1 && temp.indexOf("whitelist") == -1){
+						}else if (temp.indexOf("***") != -1 && temp.indexOf("easylist:") != -1 && temp.indexOf("whitelist") == -1){
 
 							//Whitelist endet hier
 							whitelist = 0;
 						}
+						//ist kommentar, keine weitere bearbeitung dieser Zeile nötig.
 						continue;
 					}
 
@@ -380,14 +387,10 @@ function parse() {
 
 					}
 
-
-					/*
-					 TODO:
-					 temp zu Regex umformen.
-					 URLStart (Zeichen | am anfang der regel
-					 URLEnd (Zeichen | am ende der regel) ACHTUNG: Nicht immer nur ein | am ende. Testen wie korrekt. | wird auch zum Aufzählen von Domains verwendet.
-					 URLWithSubdomain (Zeichen || am anfang der regel)
-					 */
+					 //temp zu Regex umformen.
+					 //URLStart (Zeichen | am anfang der regel
+					 //URLEnd (Zeichen | am ende der regel) ACHTUNG: Nicht immer nur ein | am ende. Testen wie korrekt. | wird auch zum Aufzählen von Domains verwendet.
+					 //URLWithSubdomain (Zeichen || am anfang der regel)
 
 					//Testen ob Regel bereits Regex ist. Wenn ja: bearbeitung abschliessen.
 					if(/^\/.+\/$/.test(temp)){
@@ -442,15 +445,6 @@ function parse() {
 					//temp zu Regex machen.
 					rule.Matchrule = new RegExp(temp);
 
-					/*
-					 TODO: DONE
-					 temp zu matchrule hinzufügen. ersetzen der Zeichen durch regex (*,^,|,||,...)
-					 */
-
-					/*
-					TODO: Important!!! DONE
-					bei den continue's werden die rules zwar korrekt erstellt, jedoch nicht zur rulelist hinzugefügt da die for-loop vorher verlassen wird. Wie regeln? verschieben des parsedEasyList.push, aufruf vor continue oder ohne continue?
-					 */
 					//console.log(temp + '\n' + rule.Matchrule + "   /    " + rule.DomainList + "   /   " + rule.OptionList + '\n' + '\n');
 
 					parsedEasyList.push(rule);
@@ -460,14 +454,47 @@ function parse() {
 				console.log(parsedEasyList.length);
 
 		//speichern der parsedEasyList
-		chrome.storage.local.set({'parsedEasyList': parsedEasyList}, function(){
-			console.log("parsedEasyList gespeichert!");
-		});
+		switch(name){
+			case "easyList":
+				chrome.storage.local.set({'parsedEasyList': parsedEasyList}, function(){
+					console.log("parsedEasyList gespeichert!");
+				});
+				break;
+			case "easyPrivacy":
+				chrome.storage.local.set({'parsedPrivacyList': parsedEasyList}, function(){
+					console.log("parsedPrivacyList gespeichert!");
+				});
+				break;
+			default:
+				alert(name + " - sollte easyList oder easyPrivacy sein...!?!");
+		}
+
 	});
 }
 
 function match(url) {
 	console.log("matching url: " + url);
+	chrome.storage.local.get('parsedEasyList', function(data){
+		var easyList = data.parsedEasyList;
+		for(var i = 0; i < easyList.length; i++ ){
+			var tempRule = easyList[i];
+			if(tempRule.Matchrule.test(url)){
+				if(tempRule.HidingRule == 1){
+					/*
+					TODO: Bearbeiten der HidingRules. Content Script?
+					 */
+				}
+				if(tempRule.Options == 1){
+					/*TODO:
+					Testen der Option.
+					 */
+				}
+			}
+		}
+		/*
+		TODO: Kein Match: Content? Tracker?
+		 */
+	});
 }
 
 
