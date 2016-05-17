@@ -196,6 +196,11 @@ function getEasyList() {
 	console.log("getEasyList function called");
 	//let parsedFilterData = {};
 
+	//get easylist
+
+	//parameter, damit parser weiss, dass es sich um easylist handelt. (auslesen aus speicher).
+	var listname = "easyList";
+
 	var rawFile = new XMLHttpRequest();
 	var link = "https://easylist-downloads.adblockplus.org/easylist.txt";
 	var easyListAsArray;
@@ -217,19 +222,56 @@ function getEasyList() {
 
 				//speichern des Arrays
 				chrome.storage.local.set({'easyList': easyListAsArray}, function(){
-					console.log("storing list successfull");
+					console.log("storing easylist successfull");
 
 					//aufrufen der parse() funktion.
 					/*TODO:
 					Dies ist ein asynchroner aufruf. die getEasyList methode wird terminieren, befor das Parsen abgeschlossen ist!!! lösung?
 					 */
-					parse();
+					parse(listname);
 				});
 	        }
 	    }
 	};
-	console.log("getEasyList methode beendet...");
 	rawFile.send();
+	console.log("bearbeitung EasyList beendet");
+
+	//get EasyPrivacy
+
+	//parameter, damit parser erkennt dass es sich um easyPrivacy handelt (auslesen aus speicher).
+	var filename = "easyPrivacy";
+
+	var file = new XMLHttpRequest();
+	var filelink = "https://easylist-downloads.adblockplus.org/easyprivacy.txt";
+	var easyPrivacyAsArray;
+	file.open("GET", filelink, true);
+	file.onreadystatechange = function ()
+	{
+		if(file.readyState === 4)
+		{
+			if(file.status === 200 || file.status == 0)
+			{
+				var easyPrivacyTxt = file.responseText;
+				//alert(allText);
+				console.log("easyPrivacy downloaded");
+				easyPrivacyAsArray = easyPrivacyTxt.split('\n');
+
+				//speichern des Arrays
+				chrome.storage.local.set({'easyPrivacy': easyPrivacyAsArray}, function(){
+					console.log("storing privacylist successfull");
+
+					//aufrufen der parse() funktion.
+					/*TODO:
+					 Dies ist ein asynchroner aufruf. die getEasyList methode wird terminieren, befor das Parsen abgeschlossen ist!!! lösung?
+					 */
+					parse(filename);
+				});
+			}
+		}
+	};
+	console.log("bearbeitung easyprivacy beendet");
+
+	file.send();
 
 }
 
