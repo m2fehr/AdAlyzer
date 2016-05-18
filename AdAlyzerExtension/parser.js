@@ -475,25 +475,53 @@ function parse(listname) {
 function match(url) {
 	console.log("matching url: " + url);
 	chrome.storage.local.get('parsedEasyList', function(data){
+		var adMatch = false;
 		var easyList = data.parsedEasyList;
 		for(var i = 0; i < easyList.length; i++ ){
-			var tempRule = easyList[i];
-			if(tempRule.Matchrule.test(url)){
-				if(tempRule.HidingRule == 1){
+			var tempAdRule = easyList[i];
+			if(tempAdRule.Matchrule.test(url)){
+				if(tempAdRule.HidingRule == 1){
 					/*
 					TODO: Bearbeiten der HidingRules. Content Script?
 					 */
 				}
-				if(tempRule.Options == 1){
+				if(tempAdRule.Options == 1){
 					/*TODO:
 					Testen der Option.
 					 */
 				}
+				adMatch = true;
 			}
 		}
 		/*
 		TODO: Kein Match: Content? Tracker?
 		 */
+
+		if(!adMatch){
+			chrome.storage.local.get('parsedPrivacyList', function(list){
+				var tMatch = false;
+				var privacyList = list.parsedPrivacyList;
+				for(var j = 0; j < privacyList.length; j++){
+					var tempTRule = privacyList[j];
+					if(tempTRule.Matchrule.test(url)){
+						if(tempTRule.Options == 1){
+							/*
+							TODO: Bearbeiten der Optionen.
+							 */
+						}
+
+						tMatch = true;
+					}
+				}
+
+				/*
+				TODO: Kein Match: Content?
+				 */
+				if(!tMatch){
+
+				}
+			})
+		}
 	});
 }
 
