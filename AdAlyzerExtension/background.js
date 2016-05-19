@@ -175,6 +175,9 @@ chrome.webRequest.onResponseStarted.addListener(function (details) {
 	{urls: ["<all_urls>"]}
 );
 
+/*
+Unterscheiden nach msgType
+*/
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
         // This cache stores page load time for each tab, so they don't interfere

@@ -1,13 +1,3 @@
-
-
-/*
-	var imageCount = 0;
-	
-	imageCount = document.getElementsByTagName('img').length;
-	console.log("image count = " + imageCount);
-	chrome.runtime.sendMessage( {'imgCount': imageCount});
-*/
-
 (function() {
     if (document.readyState == "complete") {
         measure();
@@ -23,11 +13,17 @@
                 // we have only 4 chars in our disposal including decimal point
                 var DOMTime = String(((t.domContentLoadedEventEnd  - start) / 1000).toPrecision(4)).substring(0, 5);
                 var loadTime = String(((t.loadEventEnd - start) / 1000).toPrecision(4)).substring(0, 5);
-                //var roe = chrome.runtime && chrome.runtime.sendMessage ? 'runtime' : 'extension';
-
-
+                /*
+                ToDo: sendMessage mstType = 'plt' hinzufügen
+                */
                 chrome.runtime.sendMessage({DOMTime: DOMTime, loadTime: loadTime});
             }
         }, 0);
     }
 })();
+
+/*
+Funktion, welche den Typ des content bestimmt
+Resultat zurück geben: 
+chrome.runtime.sendMessage({msgType, contentType, reqDetails}) mit msgType = 'match'
+*/

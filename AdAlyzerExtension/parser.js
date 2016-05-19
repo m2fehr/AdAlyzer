@@ -472,7 +472,13 @@ function parse(listname) {
 	});
 }
 
-function match(url) {
+/*
+return type ad/content/tracker oder '-' wenn contentscript gebraucht wird
+parameter: 	url: url string
+			reqDetails: {tabId, requestId, resourceType}
+*/
+
+function match(url, ) {
 	console.log("matching url: " + url);
 	chrome.storage.local.get('parsedEasyList', function(data){
 		var adMatch = false;
