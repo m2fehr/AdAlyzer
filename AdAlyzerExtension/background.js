@@ -84,7 +84,8 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 
 			if(typeof reqEntry === "undefined") {	//check if requestId is already used
 
-				//Differentiat between Content Type
+				//Differentiat between Content Type the example way
+				//-------------------------------------------------
 				var type = 'Content';
 				if(details.url.indexOf('ad') !== -1) {
 					type = 'Ads';
@@ -100,6 +101,28 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 						entry.elements.content = entry.elements.content + 1;
 					}
 				}
+				//-------------------------------------------------
+
+				//Differentiat between Content Type the right way
+				/*
+				var type = match({tabId: tabId, requestId: requestId, resourceType: details.type, url: details.url});
+				switch (type) {
+					case 'content':
+						entry.elements.content = entry.elements.content + 1;
+						break;
+					case 'ad':
+						entry.elements.ads = entry.elements.ads + 1;
+						chrome.browserAction.setBadgeText({text: entry.elements.ads.toString(), tabId: tabId});
+						break;
+					case 'tracker':
+						entry.elements.tracker = entry.elements.tracker + 1;
+						break;
+					case '-':
+						break;
+					default:
+						type = '-';
+				}
+				*/
 
 				//check for https
 				if(details.url.startsWith('https')) {
@@ -180,18 +203,22 @@ Unterscheiden nach msgType
 */
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
-        // This cache stores page load time for each tab, so they don't interfere
-        /*chrome.storage.local.get('cache', function(data) {
-            if (!data.cache) data.cache = {};
-            data.cache['tab' + sender.tab.id] = request.timing;
-            chrome.storage.local.set(data);
-        });
-        chrome.browserAction.setBadgeText({text: request.time, tabId: sender.tab.id});*/
-		var entry = tabs.get(sender.tab.id);
-        if(typeof entry !== "undefined") {
-        	entry.plt.dom = request.DOMTime;
-        	entry.plt.load = request.loadTime;
-        }
+  		switch (request.msgType) {
+		  case 'plt':
+		  	var entry = tabs.get(sender.tab.id);
+	        if(typeof entry !== "undefined") {
+	        	entry.plt.dom = request.DOMTime;
+	        	entry.plt.load = request.loadTime;
+	        }
+		    break;
+		  case 'match':
+		  	//ToDo: implement correct logic
+		  	console.log("bg.js: Match message received, type = " + request.contentType);
+		    break;
+		  default:
+		    console.log("Unknown Message received");
+		}
+		
     }
 );
 

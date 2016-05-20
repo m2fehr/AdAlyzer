@@ -474,18 +474,19 @@ function parse(listname) {
 
 /*
 return type ad/content/tracker oder '-' wenn contentscript gebraucht wird
-parameter: 	url: url string
-			reqDetails: {tabId, requestId, resourceType}
+parameter: 		reqDetails: {tabId, requestId, resourceType, url}
+
+Um Message an Contentscript zu senden: chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response) {});
 */
 
-function match(url, ) {
-	console.log("matching url: " + url);
+function match(reqDetails) {
+	console.log("matching url: " + reqDetails.url);
 	chrome.storage.local.get('parsedEasyList', function(data){
 		var adMatch = false;
 		var easyList = data.parsedEasyList;
 		for(var i = 0; i < easyList.length; i++ ){
 			var tempAdRule = easyList[i];
-			if(tempAdRule.Matchrule.test(url)){
+			if(tempAdRule.Matchrule.test(reqDetails.url)){
 				if(tempAdRule.HidingRule == 1){
 					/*
 					TODO: Bearbeiten der HidingRules. Content Script?
@@ -509,7 +510,7 @@ function match(url, ) {
 				var privacyList = list.parsedPrivacyList;
 				for(var j = 0; j < privacyList.length; j++){
 					var tempTRule = privacyList[j];
-					if(tempTRule.Matchrule.test(url)){
+					if(tempTRule.Matchrule.test(reqDetails.url)){
 						if(tempTRule.Options == 1){
 							/*
 							TODO: Bearbeiten der Optionen.
