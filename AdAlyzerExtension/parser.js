@@ -1,48 +1,19 @@
 
 
-function parse(listname) {
+function parse(listname, list) {
 	/*
 	Lesen des Codes auf eigene Gefahr.
 	 */
 	console.log("parsing...");
 
-	var easyListAsArray;
+	var easyListAsArray = list;
 	var name = listname;
 
 	console.log("name der Liste: " + name);
 
-	//laden des Arrays mit der EasyList aus dem speicher.
-	chrome.storage.local.get(name, function(result){
-		switch(name){
-			case "easyList":
-				easyListAsArray = result.easyList;
-				break;
-			case "easyPrivacy":
-				easyListAsArray = result.easyPrivacy;
-				break
-			default:
-				alert("unknown listname!!");
-		}
+	//In diesem Array wird die geparste EasyList gespeichert. 	 Dabei stellt jedes Element des Arrays einen Eintrag der EasyList dar.
+	var parsedEasyList = [];
 
-
-	//Hier wird die easyList als Array gespeichert.
-	//var easyListAsArray;
-
-		//In diesem Array wird die geparste EasyList gespeichert. 	 Dabei stellt jedes Element des Arrays einen Eintrag der EasyList dar.
-		var parsedEasyList = [];
-
-	//rawFile.open("GET", link, true);
-	//rawFile.onreadystatechange = function ()
-	//{
-	//	if(rawFile.readyState === 4)
-	//	{
-	//		if(rawFile.status === 200 || rawFile.status == 0)
-	//		{
-	//			var allText = rawFile.responseText;
-	//			console.log(allText.length);
-	//			alert(allText);
-
-				//easyListAsArray = allText.split('\n');
 				console.log(easyListAsArray.length);
 
 				/*
@@ -73,9 +44,6 @@ function parse(listname) {
 					//ExceptionRule zeigt an, dass es sich um eine Ausnahmeregel (beginnt mit @@ ODER enthält ein @ bei einer HidingRule) handelt und somit keine Werbung ist wenn es matcht. Eine Ausnahmeregelung auf einer Whitelist wird wie Werbung behandelt.
 					//HidingRule zeigt an, ob es sich um eine Regel zum Verstecken eines Elementes handelt (###, ##, #@#, #@##)
 					//Options zeigt an, ob es Optionen (nach dem $ Zeichen) gibt, welche berücksichtigt werden müssen
-					//URLStart zeigt an, ob die matchrule am Anfang der URL stehen muss (| am Anfang).
-					//URLEnd zeigt an, ob die matchrule am Ende der URL stehen muss (| am Ende).
-					//URLWithSubdomain zeigt an, ob der matchrule http, https, subdomain vorangehen kann (|| am Anfang)
 					//HidingOption gibt an, wie das Element mittels der in "Matchrule" angegebenen Bezeichnung gefunden wird. (id, class, html-tag (div, a, table, tb,...))
 					//Matchrule enthält den mit der URL zu vergleichenden String ODER bei einer HidingRule der Name des Elements.
 					//OptionList enthält die für diese Matchrule geltenden Regeln.
@@ -113,6 +81,11 @@ function parse(listname) {
 							//Ist nicht Whitelist. Ist Ausnahmeregel und keine Werbung.
 							rule.ExceptionRule = 1;
 							temp = temp.slice(2);
+							/*
+							TODO: Aktuell werden diese Regeln wie normale Werbung behandelt, da evtl. in Ausnahmefällen doch Werbung hinter diesen Regeln stehen.
+							Zum ausschliessen dieser Regeln folgende Codezeile auskommentieren:
+							continue;
+							 */
 						}else{
 							//Ist Whitelist. Ist Werbung, welche jedoch nicht blockiert wird.
 							//Entfernen der @@ und weiterfahren wie mit normaler Regel.
@@ -468,17 +441,15 @@ function parse(listname) {
 			default:
 				alert(name + " - sollte easyList oder easyPrivacy sein...!?!");
 		}
-
-	});
 }
 
 /*
 return type ad/content/tracker oder '-' wenn contentscript gebraucht wird
 parameter: 	url: url string
-			reqDetails: {tabId, requestId, resourceType}
+			reqDetails: {tabId, requestId, resourceType} (resourceType: "main_frame", "sub_frame", "stylesheet", "script", "image", "object", "xmlhttprequest", or "other")
 */
 
-function match(url, ) {
+function match(url, reqDetails) {
 	console.log("matching url: " + url);
 	chrome.storage.local.get('parsedEasyList', function(data){
 		var adMatch = false;
