@@ -1,29 +1,15 @@
 
 
-function parse(listname) {
+function parse(listname, list) {
 	/*
 	Lesen des Codes auf eigene Gefahr.
 	 */
 	console.log("parsing...");
 
-	var easyListAsArray;
+	var easyListAsArray = list;
 	var name = listname;
 
 	console.log("name der Liste: " + name);
-
-	//laden des Arrays mit der EasyList aus dem speicher.
-	chrome.storage.local.get(name, function(result){
-		switch(name){
-			case "easyList":
-				easyListAsArray = result.easyList;
-				break;
-			case "easyPrivacy":
-				easyListAsArray = result.easyPrivacy;
-				break
-			default:
-				alert("unknown listname!!");
-		}
-
 
 	//Hier wird die easyList als Array gespeichert.
 	//var easyListAsArray;
@@ -468,8 +454,6 @@ function parse(listname) {
 			default:
 				alert(name + " - sollte easyList oder easyPrivacy sein...!?!");
 		}
-
-	});
 }
 
 /*
