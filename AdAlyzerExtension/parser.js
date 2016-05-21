@@ -1,19 +1,48 @@
 
 
-function parse(listname, list) {
+function parse(listname) {
 	/*
 	Lesen des Codes auf eigene Gefahr.
 	 */
 	console.log("parsing...");
 
-	var easyListAsArray = list;
+	var easyListAsArray;
 	var name = listname;
 
 	console.log("name der Liste: " + name);
 
-	//In diesem Array wird die geparste EasyList gespeichert. 	 Dabei stellt jedes Element des Arrays einen Eintrag der EasyList dar.
-	var parsedEasyList = [];
+	//laden des Arrays mit der EasyList aus dem speicher.
+	chrome.storage.local.get(name, function(result){
+		switch(name){
+			case "easyList":
+				easyListAsArray = result.easyList;
+				break;
+			case "easyPrivacy":
+				easyListAsArray = result.easyPrivacy;
+				break
+			default:
+				alert("unknown listname!!");
+		}
 
+
+	//Hier wird die easyList als Array gespeichert.
+	//var easyListAsArray;
+
+		//In diesem Array wird die geparste EasyList gespeichert. 	 Dabei stellt jedes Element des Arrays einen Eintrag der EasyList dar.
+		var parsedEasyList = [];
+
+	//rawFile.open("GET", link, true);
+	//rawFile.onreadystatechange = function ()
+	//{
+	//	if(rawFile.readyState === 4)
+	//	{
+	//		if(rawFile.status === 200 || rawFile.status == 0)
+	//		{
+	//			var allText = rawFile.responseText;
+	//			console.log(allText.length);
+	//			alert(allText);
+
+				//easyListAsArray = allText.split('\n');
 				console.log(easyListAsArray.length);
 
 				/*
@@ -44,6 +73,9 @@ function parse(listname, list) {
 					//ExceptionRule zeigt an, dass es sich um eine Ausnahmeregel (beginnt mit @@ ODER enthält ein @ bei einer HidingRule) handelt und somit keine Werbung ist wenn es matcht. Eine Ausnahmeregelung auf einer Whitelist wird wie Werbung behandelt.
 					//HidingRule zeigt an, ob es sich um eine Regel zum Verstecken eines Elementes handelt (###, ##, #@#, #@##)
 					//Options zeigt an, ob es Optionen (nach dem $ Zeichen) gibt, welche berücksichtigt werden müssen
+					//URLStart zeigt an, ob die matchrule am Anfang der URL stehen muss (| am Anfang).
+					//URLEnd zeigt an, ob die matchrule am Ende der URL stehen muss (| am Ende).
+					//URLWithSubdomain zeigt an, ob der matchrule http, https, subdomain vorangehen kann (|| am Anfang)
 					//HidingOption gibt an, wie das Element mittels der in "Matchrule" angegebenen Bezeichnung gefunden wird. (id, class, html-tag (div, a, table, tb,...))
 					//Matchrule enthält den mit der URL zu vergleichenden String ODER bei einer HidingRule der Name des Elements.
 					//OptionList enthält die für diese Matchrule geltenden Regeln.
@@ -81,11 +113,6 @@ function parse(listname, list) {
 							//Ist nicht Whitelist. Ist Ausnahmeregel und keine Werbung.
 							rule.ExceptionRule = 1;
 							temp = temp.slice(2);
-							/*
-							TODO: Aktuell werden diese Regeln wie normale Werbung behandelt, da evtl. in Ausnahmefällen doch Werbung hinter diesen Regeln stehen.
-							Zum ausschliessen dieser Regeln folgende Codezeile auskommentieren:
-							continue;
-							 */
 						}else{
 							//Ist Whitelist. Ist Werbung, welche jedoch nicht blockiert wird.
 							//Entfernen der @@ und weiterfahren wie mit normaler Regel.
@@ -441,22 +468,25 @@ function parse(listname, list) {
 			default:
 				alert(name + " - sollte easyList oder easyPrivacy sein...!?!");
 		}
+
+	});
 }
 
 /*
 return type ad/content/tracker oder '-' wenn contentscript gebraucht wird
-parameter: 	url: url string
-			reqDetails: {tabId, requestId, resourceType} (resourceType: "main_frame", "sub_frame", "stylesheet", "script", "image", "object", "xmlhttprequest", or "other")
+parameter: 		reqDetails: {tabId, requestId, resourceType, url}
+
+Um Message an Contentscript zu senden: chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response) {});
 */
 
-function match(url, reqDetails) {
-	console.log("matching url: " + url);
+function match(reqDetails) {
+	console.log("matching url: " + reqDetails.url);
 	chrome.storage.local.get('parsedEasyList', function(data){
 		var adMatch = false;
 		var easyList = data.parsedEasyList;
 		for(var i = 0; i < easyList.length; i++ ){
 			var tempAdRule = easyList[i];
-			if(tempAdRule.Matchrule.test(url)){
+			if(tempAdRule.Matchrule.test(reqDetails.url)){
 				if(tempAdRule.HidingRule == 1){
 					/*
 					TODO: Bearbeiten der HidingRules. Content Script?
@@ -480,7 +510,7 @@ function match(url, reqDetails) {
 				var privacyList = list.parsedPrivacyList;
 				for(var j = 0; j < privacyList.length; j++){
 					var tempTRule = privacyList[j];
-					if(tempTRule.Matchrule.test(url)){
+					if(tempTRule.Matchrule.test(reqDetails.url)){
 						if(tempTRule.Options == 1){
 							/*
 							TODO: Bearbeiten der Optionen.

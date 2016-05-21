@@ -16,7 +16,7 @@
                 /*
                 ToDo: sendMessage mstType = 'plt' hinzufügen
                 */
-                chrome.runtime.sendMessage({DOMTime: DOMTime, loadTime: loadTime});
+                chrome.runtime.sendMessage({msgType: 'plt', DOMTime: DOMTime, loadTime: loadTime});
             }
         }, 0);
     }
@@ -27,3 +27,10 @@ Funktion, welche den Typ des content bestimmt
 Resultat zurück geben: 
 chrome.runtime.sendMessage({msgType, contentType, reqDetails}) mit msgType = 'match'
 */
+
+//Called when this Contentscript receives a message
+chrome.runtime.onMessage.addListener(
+    function(reqDetails, sender, sendResponse) {
+        
+    }
+);
