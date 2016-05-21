@@ -197,7 +197,6 @@ chrome.runtime.onMessage.addListener(
 
 function getEasyList() {
 	console.log("getEasyList function called");
-	//let parsedFilterData = {};
 
 	//get easylist
 
@@ -207,6 +206,9 @@ function getEasyList() {
 	var rawFile = new XMLHttpRequest();
 	var link = "https://easylist-downloads.adblockplus.org/easylist.txt";
 	var easyListAsArray;
+
+	//löschen des Speichers, damit keine konflikte mit alten Listen passieren.
+	chrome.storage.local.clear();
 	rawFile.open("GET", link, true);
 	rawFile.onreadystatechange = function ()
 	{
@@ -220,19 +222,8 @@ function getEasyList() {
 	            console.log("easyList downloaded");
 				easyListAsArray = easyListTxt.split('\n');
 
-				//löschen des Speichers, damit allfällige alte versionen der EasyList gelöscht werden.
-				chrome.storage.local.clear();
-
-				//speichern des Arrays
-				chrome.storage.local.set({'easyList': easyListAsArray}, function(){
-					console.log("storing easylist successfull");
-
-					//aufrufen der parse() funktion.
-					/*TODO:
-					Dies ist ein asynchroner aufruf. die getEasyList methode wird terminieren, befor das Parsen abgeschlossen ist!!! lösung?
-					 */
-					parse(listname);
-				});
+				//aufrufen der parse-funktion.
+				parse(listname, easyListAsArray);
 	        }
 	    }
 	};
@@ -259,16 +250,8 @@ function getEasyList() {
 				console.log("easyPrivacy downloaded");
 				easyPrivacyAsArray = easyPrivacyTxt.split('\n');
 
-				//speichern des Arrays
-				chrome.storage.local.set({'easyPrivacy': easyPrivacyAsArray}, function(){
-					console.log("storing privacylist successfull");
-
-					//aufrufen der parse() funktion.
-					/*TODO:
-					 Dies ist ein asynchroner aufruf. die getEasyList methode wird terminieren, befor das Parsen abgeschlossen ist!!! lösung?
-					 */
-					parse(filename);
-				});
+				//aufruf der parse-funktion.
+				parse(filename, easyPrivacyAsArray);
 			}
 		}
 	};
