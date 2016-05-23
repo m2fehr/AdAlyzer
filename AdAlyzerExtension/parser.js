@@ -59,14 +59,12 @@ function parse(listname, list) {
 					//ExceptionRule zeigt an, dass es sich um eine Ausnahmeregel (beginnt mit @@ ODER enthält ein @ bei einer HidingRule) handelt und somit keine Werbung ist wenn es matcht. Eine Ausnahmeregelung auf einer Whitelist wird wie Werbung behandelt.
 					//HidingRule zeigt an, ob es sich um eine Regel zum Verstecken eines Elementes handelt (###, ##, #@#, #@##)
 					//Options zeigt an, ob es Optionen (nach dem $ Zeichen) gibt, welche berücksichtigt werden müssen
-					//URLStart zeigt an, ob die matchrule am Anfang der URL stehen muss (| am Anfang).
-					//URLEnd zeigt an, ob die matchrule am Ende der URL stehen muss (| am Ende).
-					//URLWithSubdomain zeigt an, ob der matchrule http, https, subdomain vorangehen kann (|| am Anfang)
 					//HidingOption gibt an, wie das Element mittels der in "Matchrule" angegebenen Bezeichnung gefunden wird. (id, class, html-tag (div, a, table, tb,...))
 					//Matchrule enthält den mit der URL zu vergleichenden String ODER bei einer HidingRule der Name des Elements.
-					//OptionList enthält die für diese Matchrule geltenden Regeln.
+					//OptionList enthält die für diese Matchrule geltenden Regeln (Bsp: script, image, xmlhttprequest,...).
+					//RuleList enthält die für diese Matchrule geltenden Regeleinschränkungen (Bsp: domain=, third-party,...).
 					//DomainList enthält ENTWEDER die URLs, welche in der Option domain=... definiert wurden, ODER bei einer HidingRule, welche nicht generell gilt, die entsprechenden URL's.
-					var rule = {ExceptionRule: 0, HidingRule: 0, Options: 0, HidingOption: "", Matchrule: "", OptionList: [], DomainList: []};
+					var rule = {ExceptionRule: 0, HidingRule: 0, Options: 0, HidingOption: "", Matchrule: "", OptionList: [], RuleList: [], DomainList: []};
 
 					//console.log(temp);
 
@@ -349,28 +347,44 @@ function parse(listname, list) {
 						//Setzen des Flags.
 						rule.Options = 1;
 
-						//Extrahieren der Optionen aus temp und speichern in OptionList.
+						//Extrahieren der Optionen aus temp und speichern.
 						var rules = temp.substring(pos + 1);
 						temp = temp.substring(0, pos);
 
 						//Speichern der Regeln
 						rules = rules.split(',');
 						for (var k = 0; k < rules.length; k++) {
-							var str = rules[k];
-
-							//Fall "Domain="-Regel, speichern aller spezifizierten Domains in der DomainList.
-							if(str.indexOf("domain") != -1){
-								var temppos = str.indexOf("=");
-								var temprules = str.slice(temppos+1);
-								str=str.slice(0, temppos);
-								temprules = temprules.split('|');
-								for(var z = 0; z<temprules.length; z++){
-									rule.DomainList.push(temprules[z]);
-								}
+							var str = {rule:"", inverted: 0};
+							var tempstr = rules[k].trim();
+							if(tempstr.indexOf('~') != -1){
+								str.inverted = 1;
+								tempstr.replace('~','');
 							}
-							rule.OptionList.push(str);
-						}
 
+							//Testen ob RuleList.
+							if(tempstr.indexOf("domain") != -1 || tempstr.indexOf("third-party") != -1 || tempstr.indexOf("sitekey") != -1 || tempstr.indexOf("match-case") != -1 ||
+								tempstr.indexOf("collapse") != -1 || tempstr.indexOf("donottrack") != -1 ){
+
+								//Fall "Domain="-Regel, speichern aller spezifizierten Domains in der DomainList.
+								if(tempstr.indexOf("domain") != -1){
+									var temppos = tempstr.indexOf("=");
+									var temprules = tempstr.slice(temppos+1);
+									tempstr=tempstr.slice(0, temppos);
+									temprules = temprules.split('|');
+									for(var z = 0; z<temprules.length; z++){
+										rule.DomainList.push(temprules[z]);
+									}
+								}
+								str.rule=tempstr;
+								rule.RuleList.push(str);
+							}
+
+							//es handelt sich nicht um eine Regeleinschränkung.
+							else{
+								str.rule=tempstr;
+								rule.OptionList.push(str);
+							}
+						}
 					}
 
 					 //temp zu Regex umformen.
@@ -431,7 +445,7 @@ function parse(listname, list) {
 					//temp zu Regex machen.
 					rule.Matchrule = new RegExp(temp);
 
-					//console.log(temp + '\n' + rule.Matchrule + "   /    " + rule.DomainList + "   /   " + rule.OptionList + '\n' + '\n');
+					//console.log(temp + '\n' + rule.Matchrule + "   /    " + rule.DomainList + "   /   " + rule.OptionList + '\n' + rule.RuleList + '\n' + '\n');
 
 					parsedEasyList.push(rule);
 				}
@@ -475,11 +489,93 @@ function match(reqDetails) {
 					/*
 					TODO: Bearbeiten der HidingRules. Content Script?
 					 */
+
+					//Testen ob Regel auf gewisse Domains eingeschränkt ist.
+					if(tempAdRule.DomainList.length > 0){
+						/*
+						TODO: effektiv vom Nutzer aufgerufene URL testen gegen DomainList.
+						 */
+
+
+					}
+					chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response){
+
+					});
+					//return '-';
 				}
 				if(tempAdRule.Options == 1){
 					/*TODO:
-					Testen der Option.
+					Testen der Optionen.
 					 */
+					
+					//variable, falls die RuleList der aktuell geprüften Regel ein Match ausschliesst.
+
+					//prüfen, ob die RuleList der Regel ein Match zulässt.
+					for(var ruleCounter = 0; ruleCounter < tempAdRule.RuleList.length; ruleCounter++){
+
+					}
+
+					//die var Match wird von jeder Regel in der for-loop auf true gesetzt, falls trotz der Regel ein match vorliegt. ist die Variable am Ende der for-loop noch auf false, liegt kein match vor.
+					var match = false;
+
+					//prüfen, ob die OptionList der Regel ein Match zulässt.
+					for(var optionCounter = 0; optionCounter < tempAdRule.OptionList.length; optionCounter++){
+
+						//noMatch wird auf true gesetzt, falls bei einer Regel festgestellt wird, dass ein Match für diesen Request unmöglich ist (Beispiel: resourceType = script, Regel = ~script).
+						//for-loop kann also beendet werden.
+						var noMatch = false;
+						switch(tempAdRule.OptionList[optionCounter].rule){
+							/*
+							TODO:
+							Hier die html-Optionen prüfen (reqDetails.resourceType)
+							 "main_frame", "sub_frame", "stylesheet", "script", "image", "object", "xmlhttprequest", or "other"
+							 alle typen: script, image, stylesheet, object, xmlhttprequest, object-subrequest, subdocument, ping, document, elemhide, generichide, genericblock, other, third-party, domain,
+							 */
+							case "script":
+								//testen, ob regel auf scripte angewendet werden soll.
+								if(tempAdRule.OptionList[optionCounter].inverted == 0){
+									//testen, ob ressourceType script ist.
+									if(reqDetails.resourceType == "script"){
+										//match, falls
+										match=true;
+									}
+								}
+								else{
+
+								}
+
+								break;
+							case "image":
+								break;
+							case "stylesheet":
+								break;
+							case "object":
+								break;
+							case "xmlhttprequest":
+								break;
+							case "object-subrequest":
+								break;
+							case "subdocument":
+								break;
+							case "document":
+								break;
+							case "elemhide":
+								break;
+							case "generichide":
+								break;
+							case "genericblock":
+								break;
+							case "other":
+								break;
+							default:
+								alert("unbekannte Regel" + tempAdRule.OptionList[optionCounter].rule);
+						}
+
+						if(noMatch){
+							break;
+						}
+					}
+
 				}
 				adMatch = true;
 			}
