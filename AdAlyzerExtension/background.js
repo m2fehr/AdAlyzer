@@ -125,10 +125,11 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 				*/
 
 				//check for https
+				/*
 				if(details.url.startsWith('https')) {
 					type = type + '(s)';
 				}
-
+				*/
 				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type});
 			}
 			else {
