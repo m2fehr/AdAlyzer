@@ -6,7 +6,7 @@ div#title {
 }
 
 div#container {
-  width: 400px;
+  width: 450px;
   height: 100%;
 }
 
@@ -31,6 +31,10 @@ div#container {
   width: 100px;
   background: orange;
   text-align: center;
+}
+
+#exportBtn {
+  margin: 5px;
 }
 
 body {

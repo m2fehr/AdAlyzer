@@ -31,6 +31,27 @@ function getClassificationText(value, tief, hoch){
     }
 }
 
+function exportToCsv() {
+    var backgroundWindow = chrome.extension.getBackgroundPage();
+    var query = { active: true, currentWindow: true };
+    chrome.tabs.query(query, function(tabs) {
+        var myCsv = "Type;Waiting[ms];Downloading[ms];Scheme;URL\n";
+        var currentTab = tabs[0];
+        var currentTabEntry = backgroundWindow.tabs.get(currentTab.id);
+        var reqMap = currentTabEntry.reqMap;
+        reqMap.forEach(function(value, key, map) {
+            if (value.finished) {
+                myCsv = myCsv + value.contentType + ";";
+                myCsv = myCsv + (value.responseReceived - value.requestSent).toFixed(0) + ";";
+                myCsv = myCsv + (value.completed - value.responseReceived).toFixed(0) + ";";
+                myCsv = myCsv + value.url.split(':', 1)[0] + ";";
+                myCsv = myCsv + value.url + "\n";
+            }
+        });
+        window.open('data:text/csv;charset=utf-8,' + escape(myCsv));
+    });
+}
+
 // When the popup HTML has loaded
 window.addEventListener('load', function(evt) {
     // First Tab
@@ -48,7 +69,8 @@ window.addEventListener('load', function(evt) {
     var totalRating = document.getElementById('totalRating');
     // Third Tab
     var tableBody = document.getElementById("reqTableBody");
-
+    var exportBtn = document.getElementById('exportBtn');
+    exportBtn.addEventListener('click', exportToCsv);
 
     var backgroundWindow = chrome.extension.getBackgroundPage();
     var query = { active: true, currentWindow: true };
@@ -99,12 +121,17 @@ window.addEventListener('load', function(evt) {
                 cell1 = document.createElement("td");
                 cell2 = document.createElement("td");
                 cell3 = document.createElement("td");
+                cell4 = document.createElement("td");
                 cell1.innerHTML = value.contentType;
-                cell2.innerHTML = (value.responseReceived - value.requestSent).toFixed(3);
-                cell3.innerHTML = (value.completed - value.responseReceived).toFixed(3);
+                cell2.innerHTML = (value.responseReceived - value.requestSent).toFixed(0);
+                cell3.innerHTML = (value.completed - value.responseReceived).toFixed(0);
+                cell4.innerHTML = value.url.split(':', 1)[0];
+                cell2.style.textAlign = 'right';
+                cell3.style.textAlign = 'right';
                 row.appendChild(cell1);
                 row.appendChild(cell2);
                 row.appendChild(cell3);
+                row.appendChild(cell4);
                 row.setAttribute("title", value.url);
                 tableBody.appendChild(row);
             }
