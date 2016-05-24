@@ -505,6 +505,7 @@ function match(reqDetails) {
 					chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response){
 
 					});
+					console.log("Hiding Rule. Message an Content Script gesendet!   URL: " + reqDetails.url + ", Regel: " + tempAdRule.Matchrule + " Regel-Nr. " + i);
 					//return '-';
 				}
 				if(tempAdRule.Options == 1){
@@ -533,14 +534,30 @@ function match(reqDetails) {
 								var tempDomainMatches = false;
 
 								for(var domainCount = 0; domainCount < tempAdRule.DomainList.length; domainCount++){
-									if(tempAdRule.DomainList[domainCount].inverted == 0){
-										//url muss der domain entsprechen, damit tempDomainMatches auf true gesetzt werden kann.
+									var tempDomain = tempAdRule.DomainList[domainCount];
+									if(tempDomain.indexOf('~') == -1){
+										//Domain ist NICHT invertiert. Url muss der domain entsprechen, damit tempDomainMatches auf true gesetzt werden kann.
+
+										if(reqDetails.url.indexOf(tempDomain) != -1){
+											//Domain matcht auf url. Setzen von tempDomainMatches auf true. for-loop muss zuende laufen, falls eine andere Regel ein Match wiederum ausschliesst.
+
+											console.log("Matching Domain: URL: " + reqDetails.url + ", DOMAIN: " + tempDomain);
+											tempDomainMatches = true;
+										}
 									}else{
-										//url darf der domain nicht entsprechen. Sonst muss noMatch auf true gesetzt werden, da ein Match nicht möglich ist.
+										//Domain IST invertiert! Url darf der domain NICHT entsprechen. Sonst muss noMatch auf true gesetzt werden, da ein Match nicht möglich ist.
+
+										tempDomain = tempDomain.replace('~','');
+										if(reqDetails.url.indexOf(tempDomain) != -1){
+											//Domain matcht auf url. Match ist somit unmöglich. setzen von tempDomainMatch auf false und unterbrechen der for-loop für diese Regel.
+											console.log("INVERTED Matching Domain: URL: " + reqDetails.url + ", DOMAIN: ~" + tempDomain);
+											tempDomainMatches = false;
+											break;
+										}
 									}
 								}
 								if(!tempDomainMatches){
-									//die domain-rule schniesst ein match der url mit dieser regel aus.
+									//die domain-rule schliesst ein match der url mit dieser regel aus.
 									noMatch = true;
 								}
 								break;
@@ -665,6 +682,18 @@ function match(reqDetails) {
 			})
 		}
 	});
+}
+
+function testMatch(){
+	/*
+	Methode zum Testen der Match-Funktion.
+	LISTEN MÜSSEN IM SPEICHER VORHANDEN SEIN (GETEASYLIST MUSS VORHER AUSGEFÜHRT WERDEN)
+	var reqDetails nach dem Muster    reqDetails: {tabId, requestId, resourceType, url}    definieren.
+	tabID und requestID können für diesen Test auf 0 belassen werden. resourceType ist script, img,.... url ist die aufgerufene URL.
+	 */
+	var reqDetails = {tabId: 0, requestId: 0, resourceType: "", url: ""};
+	var resp = match(reqDetails);
+	console.log(resp);
 }
 
 
