@@ -356,6 +356,8 @@ function parse(listname, list) {
 						for (var k = 0; k < rules.length; k++) {
 							var str = {rule:"", inverted: 0};
 							var tempstr = rules[k].trim();
+
+							//falls die Regel invertiert ist (~), inverted auf 1 setzen.
 							if(tempstr.indexOf('~') != -1){
 								str.inverted = 1;
 								tempstr.replace('~','');
@@ -372,7 +374,9 @@ function parse(listname, list) {
 									tempstr=tempstr.slice(0, temppos);
 									temprules = temprules.split('|');
 									for(var z = 0; z<temprules.length; z++){
-										rule.DomainList.push(temprules[z]);
+										var domainAsRegex = temprules[z].trim();
+										domainAsRegex = domainAsRegex.replace(/\./, '\\.');
+										rule.DomainList.push(new RegExp(domainAsRegex));
 									}
 								}
 								str.rule=tempstr;
@@ -507,12 +511,63 @@ function match(reqDetails) {
 					/*TODO:
 					Testen der Optionen.
 					 */
-					
+
 					//variable, falls die RuleList der aktuell geprüften Regel ein Match ausschliesst.
+					var noMatch = false;
 
 					//prüfen, ob die RuleList der Regel ein Match zulässt.
 					for(var ruleCounter = 0; ruleCounter < tempAdRule.RuleList.length; ruleCounter++){
+						switch(tempAdRule.RuleList[ruleCounter].rule){
+							case "third-party":
+								if(tempAdRule.RuleList.inverted == 0){
+									//regel ist nicht invertiert. Wird nur auf third-party seiten angewendet. Domain der url darf nicht mit der url der eigentlich aufgerufenen seite übereinstimmen.
+									//(bsp: aufruf: 20min.ch, request geht auf ad.com --> match. 20min.ch, request auf 20min.ch --> kein match.
+								}
+								else{
+									//regel ist invertiert. Wird nur auf die eigentlich aufgerufene Seite angewendet.
+									//ggt. von oben.
+								}
+								break;
+							case "domain":
+								//variable tempDomainMatches wird auf true gesetzt, falls die URL die bedingung der regel erfüllt.
+								var tempDomainMatches = false;
 
+								for(var domainCount = 0; domainCount < tempAdRule.DomainList.length; domainCount++){
+									if(tempAdRule.DomainList[domainCount].inverted == 0){
+										//url muss der domain entsprechen, damit tempDomainMatches auf true gesetzt werden kann.
+									}else{
+										//url darf der domain nicht entsprechen. Sonst muss noMatch auf true gesetzt werden, da ein Match nicht möglich ist.
+									}
+								}
+								if(!tempDomainMatches){
+									//die domain-rule schniesst ein match der url mit dieser regel aus.
+									noMatch = true;
+								}
+								break;
+							case "match-case":
+								//diese Regel kommt in keiner der beiden bisher verwendeten Listen vor.
+								//daher wird sie an dieser Stelle nicht implementiert.
+								break;
+							case "collapse":
+								//diese Regel kommt in keiner der beiden bisher verwendeten Listen vor.
+								//daher wird sie an dieser Stelle nicht implementiert.
+								break;
+							case "donottrack":
+								//diese Regel hat keinen Einfluss auf unsere Anwendung und wird daher ignoriert.
+								break;
+							default:
+								alert("unknown rule in RuleList" + tempAdRule.RuleList[ruleCounter].rule);
+						}
+
+						//falls ein Match nicht mehr Möglich ist, kann die for-loop unterbrochen werden.
+						if(noMatch){
+							break;
+						}
+					}
+
+					//falls kein Match möglich ist, kann die for-loop für diese Regel übersprungen werden.
+					if(noMatch){
+						continue;
 					}
 
 					//die var Match wird von jeder Regel in der for-loop auf true gesetzt, falls trotz der Regel ein match vorliegt. ist die Variable am Ende der for-loop noch auf false, liegt kein match vor.
@@ -521,9 +576,9 @@ function match(reqDetails) {
 					//prüfen, ob die OptionList der Regel ein Match zulässt.
 					for(var optionCounter = 0; optionCounter < tempAdRule.OptionList.length; optionCounter++){
 
-						//noMatch wird auf true gesetzt, falls bei einer Regel festgestellt wird, dass ein Match für diesen Request unmöglich ist (Beispiel: resourceType = script, Regel = ~script).
+						//noMatchPossible wird auf true gesetzt, falls bei einer Regel festgestellt wird, dass ein Match für diesen Request unmöglich ist (Beispiel: resourceType = script, Regel = ~script).
 						//for-loop kann also beendet werden.
-						var noMatch = false;
+						var noMatchPossible = false;
 						switch(tempAdRule.OptionList[optionCounter].rule){
 							/*
 							TODO:
