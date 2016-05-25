@@ -118,6 +118,21 @@ window.addEventListener('load', function(evt) {
         reqMap.forEach(function(value, key, map) {
             if (value.finished) {
                 row=document.createElement("tr");
+                //Add Eventlistener for doubleclicked rows -> copy URL to clipboard
+                row.addEventListener('dblclick', function (event) {
+                    console.log("row doubleclicked, url: " + this.getAttribute("title"));
+                    var copyFrom = document.createElement("textarea");
+                    copyFrom.textContent = this.getAttribute("title");
+                    var body = document.getElementsByTagName('body')[0];
+                    copyFrom.style.boxSizing="border-box"
+                    copyFrom.style.height = "0px";
+                    copyFrom.style.width = "0px";
+                    copyFrom.style.margin = "0px";
+                    body.appendChild(copyFrom);
+                    copyFrom.select();
+                    document.execCommand('copy');
+                    body.removeChild(copyFrom);
+                });
                 cell1 = document.createElement("td");
                 cell2 = document.createElement("td");
                 cell3 = document.createElement("td");

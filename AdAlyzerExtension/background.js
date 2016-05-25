@@ -223,6 +223,11 @@ chrome.runtime.onMessage.addListener(
     }
 );
 
+//This method is called when the Extension is activated
+window.addEventListener('load', function(evt) {
+	//ToDo: Call get EasyList function
+});
+
 function getEasyList() {
 	console.log("getEasyList function called");
 
