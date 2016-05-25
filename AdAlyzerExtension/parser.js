@@ -492,23 +492,49 @@ function match(reqDetails) {
 			console.log(tempAdRule.Matchrule);
 			if(tempMatchRule.test(reqDetails.url)){
 				if(tempAdRule.HidingRule == 1){
-					/*
-					TODO: Bearbeiten der HidingRules. Content Script?
-					 */
+
+					//variable wird auf true gesetzt, falls z.B. die DomainList der Regel ein Match ausschliesst.
+					var noHidingMatch = false;
+
+					//variable wird auf true gesetzt, falls eine Domain aus der DomainList der url entspricht.
+					var mHDomain = false;
 
 					//Testen ob Regel auf gewisse Domains eingeschränkt ist.
 					if(tempAdRule.DomainList.length > 0){
 						/*
 						TODO: effektiv vom Nutzer aufgerufene URL testen gegen DomainList.
 						 */
+						for(var hDCounter = 0; hDCounter < tempAdRule.DomainList.length; hDCounter++){
+							var hDTemp = tempAdRule.DomainList[hDCounter];
+							if(reqDetails.url.indexOf(hDTemp.rule) != -1){
+								if(hDTemp.inverted == 0){
+									//domain und url matchen und regel ist nicht invertiert --> match möglich.
+									mHDomain = true;
+								}else{
+									//domain und url matchen aber regel ist invertiert --> match ist unmöglich.
+									noHidingMatch = true;
+									break;
+								}
+							}
 
-
+						}
+						//falls keine der domains auf die url matcht, kann
+						if(noHidingMatch){
+							mHDomain = false;
+							continue;
+						}
 					}
-					chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response){
 
-					});
-					console.log("Hiding Rule. Message an Content Script gesendet!   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
-					//return '-';
+					if(mHDomain){
+						chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response){
+
+						});
+						console.log("Hiding Rule. Message an Content Script gesendet!   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
+
+						//return '-';
+					}else{
+						continue;
+					}
 				}
 				if(tempAdRule.Options == 1){
 					/*TODO:
@@ -666,7 +692,16 @@ function match(reqDetails) {
 								break;
 
 							case "object-subrequest":
-
+								//Diese Regel kann nicht bearbeitet werden, da keine Informationen vom Browser zur Verfügung gestellt werden.
+								//AdBlock Plus behandelt diese Regel wie die normale "object"-Regel.
+								//Daher machen wir dies an dieser stelle genau so.
+								if(reqDetails.resourceType == "object"){
+									if(tempAdRule.OptionList[optionCounter].inverted == 0){
+										match = true;
+									}else{
+										noMatchPossible = true;
+									}
+								}
 								break;
 
 							case "subdocument":
