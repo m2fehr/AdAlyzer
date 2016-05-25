@@ -447,7 +447,7 @@ function parse(listname, list) {
 					temp = temp.replace(/\.\*$/, '');
 
 					//temp zu Regex machen.
-					rule.Matchrule = new RegExp(temp);
+					rule.Matchrule = temp;
 
 					//console.log(temp + '\n' + rule.Matchrule + "   /    " + rule.DomainList + "   /   " + rule.OptionList + '\n' + rule.RuleList + '\n' + '\n');
 
@@ -488,7 +488,9 @@ function match(reqDetails) {
 		var easyList = data.parsedEasyList;
 		for(var i = 0; i < easyList.length; i++ ){
 			var tempAdRule = easyList[i];
-			if(tempAdRule.Matchrule.test(reqDetails.url)){
+			var tempMatchRule = new RegExp(tempAdRule.Matchrule);
+			console.log(tempAdRule.Matchrule);
+			if(tempMatchRule.test(reqDetails.url)){
 				if(tempAdRule.HidingRule == 1){
 					/*
 					TODO: Bearbeiten der HidingRules. Content Script?
@@ -505,7 +507,7 @@ function match(reqDetails) {
 					chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response){
 
 					});
-					console.log("Hiding Rule. Message an Content Script gesendet!   URL: " + reqDetails.url + ", Regel: " + tempAdRule.Matchrule + " Regel-Nr. " + i);
+					console.log("Hiding Rule. Message an Content Script gesendet!   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
 					//return '-';
 				}
 				if(tempAdRule.Options == 1){
@@ -513,7 +515,7 @@ function match(reqDetails) {
 					Testen der Optionen.
 					 */
 
-					//variable, falls die RuleList der aktuell geprüften Regel ein Match ausschliesst.
+					//variable, falls die RuleList oder OptionList der aktuell geprüften Regel ein Match ausschliesst.
 					var noMatch = false;
 
 					//prüfen, ob die RuleList der Regel ein Match zulässt.
@@ -604,52 +606,127 @@ function match(reqDetails) {
 							 alle typen: script, image, stylesheet, object, xmlhttprequest, object-subrequest, subdocument, ping, document, elemhide, generichide, genericblock, other, third-party, domain,
 							 */
 							case "script":
-								//testen, ob regel auf scripte angewendet werden soll.
-								if(tempAdRule.OptionList[optionCounter].inverted == 0){
-									//testen, ob ressourceType script ist.
-									if(reqDetails.resourceType == "script"){
-										//match, falls
-										match=true;
+								//testen, ob resource Type des Requests script ist (mit der rule der OptionList überein stimmt).
+								if(reqDetails.resourceType == "script"){
+									//Testen, ob regel invertiert ist.
+									if(tempAdRule.OptionList[optionCounter].inverted == 0){
+										//regel ist NICHT invertiert und stimmt mit OptionList überein. Ist ein match.
+										match = true;
+									}else{
+										//regel IST invertiert und stimmt mit OptionList überein. Match ist somit ausgeschlossen.
+										noMatchPossible = true;
 									}
 								}
-								else{
 
+								break;
+
+							case "image":
+								//bearbeitung wie script.
+								if(reqDetails.resourceType == "image"){
+									if(tempAdRule.OptionList[optionCounter].inverted == 0){
+										match = true;
+									}else{
+										noMatchPossible = true;
+									}
 								}
 
 								break;
-							case "image":
-								break;
+
 							case "stylesheet":
+								//bearbeitung wie script
+								if(reqDetails.resourceType == "stylesheet"){
+									if(tempAdRule.OptionList[optionCounter].inverted == 0){
+										match = true;
+									}else{
+										noMatchPossible = true;
+									}
+								}
 								break;
+
 							case "object":
+								//bearbeitung wie script.
+								if(reqDetails.resourceType == "object"){
+									if(tempAdRule.OptionList[optionCounter].inverted == 0){
+										match = true;
+									}else{
+										noMatchPossible = true;
+									}
+								}
 								break;
+
 							case "xmlhttprequest":
+								//bearbeitung wie script.
+								if(reqDetails.resourceType == "xmlhttprequest"){
+									if(tempAdRule.OptionList[optionCounter].inverted == 0){
+										match = true;
+									}else{
+										noMatchPossible = true;
+									}
+								}
 								break;
+
 							case "object-subrequest":
+
 								break;
+
 							case "subdocument":
+								if(reqDetails.resourceType == "sub_frame"){
+									if(tempAdRule.OptionList[optionCounter].inverted == 0){
+										match = true;
+									}else{
+										noMatchPossible = true;
+									}
+								}
 								break;
+
 							case "document":
+								//Diese Regel kommt in den zwei aktuell verwendeten Listen nicht vor und wird daher ignoriert.
+								console.log("unimplemented option document in rule " + tempMatchRule);
 								break;
 							case "elemhide":
+								//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
 								break;
 							case "generichide":
+								//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
 								break;
 							case "genericblock":
+								//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
 								break;
 							case "other":
+								//bearbeitung wie script.
+								if(reqDetails.resourceType == "other"){
+									if(tempAdRule.OptionList[optionCounter].inverted == 0){
+										match = true;
+									}else{
+										noMatchPossible = true;
+									}
+								}
 								break;
 							default:
 								alert("unbekannte Regel" + tempAdRule.OptionList[optionCounter].rule);
 						}
 
-						if(noMatch){
+						if(noMatchPossible){
+							match = false;
 							break;
 						}
 					}
+					if(noMatchPossible){
+						match = false;
+						continue;
+					}
+					if(!match){
+						continue;
+					}
 
 				}
+				//regel matcht auf URL und kein eintrag der RuleList oder OptionList verhindert ein match --> ist ein Match.
 				adMatch = true;
+
+				/*TODO:
+				soll nach einem Match weiter getestet werden?
+				 */
+				return "ad";
 			}
 		}
 		/*
@@ -691,9 +768,9 @@ function testMatch(){
 	var reqDetails nach dem Muster    reqDetails: {tabId, requestId, resourceType, url}    definieren.
 	tabID und requestID können für diesen Test auf 0 belassen werden. resourceType ist script, img,.... url ist die aufgerufene URL.
 	 */
-	var reqDetails = {tabId: 0, requestId: 0, resourceType: "", url: ""};
-	var resp = match(reqDetails);
-	console.log(resp);
+	var reqDetails = {tabId: 0, requestId: 0, resourceType: "image", url: "www.xy-ad-top.com"};
+	match(reqDetails);
+	console.log("testMatch finished");
 }
 
 
