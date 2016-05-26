@@ -214,6 +214,7 @@ chrome.runtime.onMessage.addListener(
 		    break;
 		  case 'match':
 		  	//ToDo: implement correct logic
+			  setMatchType(request.reqDetails, request.contentType)
 		  	console.log("bg.js: Match message received, type = " + request.contentType);
 		    break;
 		  default:
@@ -222,9 +223,16 @@ chrome.runtime.onMessage.addListener(
 		
     }
 );
+/*
+TODO implement
+ */
+function setMatchType(reqDetails, matchType){
+	console.log("bg.js: Match message received, type = " + matchType);
+}
 
 //This method is called when the Extension is activated
 window.addEventListener('load', function(evt) {
+	getEasyList();
 	//ToDo: Call get EasyList function
 });
 
