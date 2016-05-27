@@ -130,8 +130,8 @@ function parse(listname, list) {
 								rule.Matchrule = temp;
 
 								//verarbeitung des Elementes abgeschlossen.
-								parsedEasyList.push(rule);
-								continue;
+								//parsedEasyList.push(rule);
+								//continue;
 							}
 							//test ob ##. (class)
 							else if(temp.indexOf("##.") != -1){
@@ -145,8 +145,8 @@ function parse(listname, list) {
 								rule.Matchrule = temp;
 
 								//verarbeitung des Elementes abgeschlossen.
-								parsedEasyList.push(rule);
-								continue;
+								//parsedEasyList.push(rule);
+								//continue;
 							}
 
 							//testen ob ##
@@ -168,9 +168,8 @@ function parse(listname, list) {
 								 */
 
 								//verarbeitung des Elementes abgeschlossen.
-								parsedEasyList.push(rule);
-
-								continue;
+								//parsedEasyList.push(rule);
+								//continue;
 							}
 
 							else{
@@ -203,9 +202,8 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							parsedEasyList.push(rule);
-
-							continue;
+							//parsedEasyList.push(rule);
+							//continue;
 						}
 
 						else if(temp.indexOf("##.") != -1 && temp.indexOf("@#") == -1){
@@ -232,9 +230,8 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							parsedEasyList.push(rule);
-
-							continue;
+							//parsedEasyList.push(rule);
+							//continue;
 						}
 
 						else if(temp.indexOf("##") != -1 && temp.indexOf("@#") == -1){
@@ -266,9 +263,8 @@ function parse(listname, list) {
 							 */
 
 							//verarbeitung des Elementes abgeschlossen.
-							parsedEasyList.push(rule);
-
-							continue;
+							//parsedEasyList.push(rule);
+							//continue;
 						}
 
 						//Behandeln der Ausnahmeregeln #@## (ID), #@#.(class)
@@ -295,9 +291,8 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							parsedEasyList.push(rule);
-
-							continue;
+							//parsedEasyList.push(rule);
+							//continue;
 						}
 
 						else if(temp.indexOf("#@#.") != -1){
@@ -322,9 +317,8 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							parsedEasyList.push(rule);
-
-							continue;
+							//parsedEasyList.push(rule);
+							//continue;
 						}
 
 						else{
@@ -516,14 +510,35 @@ function match(reqDetails) {
 		chrome.storage.local.get('parsedEasyList', function(data){
 			console.log("start test ad list");
 
-			var adMatch = false;
 			var easyList = data.parsedEasyList;
+			var hidingMatches = [];
 			for(var i = 0; i < easyList.length; i++ ){
 				var tempAdRule = easyList[i];
 				var tempMatchRule = new RegExp(tempAdRule.Matchrule);
-				console.log(tempAdRule.Matchrule);
 				if(tempMatchRule.test(reqDetails.url)){
-					if(tempAdRule.HidingRule == 1){
+
+					if(tempAdRule.Options == 1){
+						/*TODO:
+						 Testen der Optionen.
+						 */
+						if(!testMatchOptions(reqDetails, tempAdRule)){
+							continue;
+						}
+					}
+					//regel matcht auf URL und kein eintrag der RuleList oder OptionList verhindert ein match --> ist ein Match.
+					/*TODO:
+					 soll nach einem Match weiter getestet werden?
+					 */
+					//sofern es sich nicht um eine Hiding Rule handelt, kann hier der Matchtipe auf "ad" gesetzt werden
+					if(tempAdRule.HidingRule == 0){
+						console.log("match auf Regel: " + tempMatchRule);
+						setMatchType(reqDetails, "ad");
+						/*TODO:
+						 soll nach einem Match weiter getestet werden?
+						 */
+						return;
+
+					}else{
 
 						//variable wird auf true gesetzt, falls z.B. die DomainList der Regel ein Match ausschliesst.
 						var noHidingMatch = true;
@@ -559,32 +574,16 @@ function match(reqDetails) {
 						}
 
 						if(mHDomain){
-							chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response){
-
-							});
-							console.log("Hiding Rule. Message an Content Script gesendet!   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
-
-							//return '-';
-						}else{
-							continue;
+							var hidingMatchesEntry = {tabId: reqDetails.tabId, reqDetails: reqDetails, response: ""};
+							hidingMatches.push(hidingMatchesEntry);
+							console.log("Hiding Rule.   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
 						}
 					}
-					if(tempAdRule.Options == 1){
-						/*TODO:
-						Testen der Optionen.
-						 */
-						if(!testMatchOptions(reqDetails, tempAdRule)){
-							continue;
-						}
-					}
-					//regel matcht auf URL und kein eintrag der RuleList oder OptionList verhindert ein match --> ist ein Match.
-					adMatch = true;
-
-					/*TODO:
-					soll nach einem Match weiter getestet werden?
-					 */
-					return "ad";
 				}
+			}
+			if(hidingMatches.length > 0){
+				console.log("Hiding Rules an ContentScript gesendet.");
+				chrome.tabs.sendMessage(hidingMatches);
 			}
 		});
 	});
@@ -818,7 +817,7 @@ function testMatch(){
 	var reqDetails nach dem Muster    reqDetails: {tabId, requestId, resourceType, url}    definieren.
 	tabID und requestID können für diesen Test auf 0 belassen werden. resourceType ist script, img,.... url ist die aufgerufene URL.
 	 */
-	var reqDetails = {tabId: 0, requestId: 0, resourceType: "image", url: "www.xy-ad-top.com"};
+	var reqDetails = {tabId: 0, requestId: 0, resourceType: "image", url: "ads > .dose > .dosesingle"};
 	match(reqDetails);
 	console.log("testMatch finished");
 }

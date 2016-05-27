@@ -13,9 +13,7 @@
                 // we have only 4 chars in our disposal including decimal point
                 var DOMTime = String(((t.domContentLoadedEventEnd  - start) / 1000).toPrecision(4)).substring(0, 5);
                 var loadTime = String(((t.loadEventEnd - start) / 1000).toPrecision(4)).substring(0, 5);
-                /*
-                ToDo: sendMessage mstType = 'plt' hinzufügen
-                */
+
                 chrome.runtime.sendMessage({msgType: 'plt', DOMTime: DOMTime, loadTime: loadTime});
             }
         }, 0);
@@ -31,6 +29,6 @@ chrome.runtime.sendMessage({msgType, contentType, reqDetails}) mit msgType = 'ma
 //Called when this Contentscript receives a message
 chrome.runtime.onMessage.addListener(
     function(reqDetails, sender, sendResponse) {
-        
+
     }
 );
