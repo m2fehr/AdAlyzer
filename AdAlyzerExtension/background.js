@@ -66,6 +66,36 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	}
 });
 
+function getReqEntry(tabId, requestId) {
+	if(tabId && tabId !== -1) {	//check if tabId is valid
+  		var entry = tabs.get(tabId);
+		if(typeof entry !== "undefined") {	//check if an entry exists for this tab
+			var reqEntry = entry.reqMap.get(requestId);
+			if(typeof reqEntry !== "undefined") {	//check if requestId is already used
+				return reqEntry;
+			}
+		}
+	}
+	return -1;
+}
+
+function incrementTypeCount(tabId, entry, type) {
+	switch (type) {
+		case 'content':
+			entry.elements.content = entry.elements.content + 1;
+			break;
+		case 'ad':
+			entry.elements.ads = entry.elements.ads + 1;
+			chrome.browserAction.setBadgeText({text: entry.elements.ads.toString(), tabId: tabId});
+			break;
+		case 'tracker':
+			entry.elements.tracker = entry.elements.tracker + 1;
+			break;
+		case '-':
+			break;
+	}
+}
+
 chrome.webRequest.onBeforeRequest.addListener(function(details) {
     	var tabId = details.tabId;
     	var requestId = details.requestId;
@@ -86,51 +116,26 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 
 				//Differentiat between Content Type the example way
 				//-------------------------------------------------
-				var type = 'Content';
+				var type = 'content';
 				if(details.url.indexOf('ad') !== -1) {
-					type = 'Ads';
-					entry.elements.ads = entry.elements.ads + 1;
-					chrome.browserAction.setBadgeText({text: entry.elements.ads.toString(), tabId: tabId});
+					type = 'ad';
 				}
 				else {
 					if((details.url.indexOf('track') !== -1) || (details.url.indexOf('analy') !== -1)) {
-						type = 'Tracking';
-						entry.elements.tracker = entry.elements.tracker + 1;
-					}
-					else {
-						entry.elements.content = entry.elements.content + 1;
+						type = 'tracker';
 					}
 				}
+				incrementTypeCount(tabId, entry, type);
 				//-------------------------------------------------
 
 				//Differentiat between Content Type the right way
 				/*
 				var type = match({tabId: tabId, requestId: requestId, resourceType: details.type, url: details.url});
-				switch (type) {
-					case 'content':
-						entry.elements.content = entry.elements.content + 1;
-						break;
-					case 'ad':
-						entry.elements.ads = entry.elements.ads + 1;
-						chrome.browserAction.setBadgeText({text: entry.elements.ads.toString(), tabId: tabId});
-						break;
-					case 'tracker':
-						entry.elements.tracker = entry.elements.tracker + 1;
-						break;
-					case '-':
-						break;
-					default:
-						type = '-';
-				}
+				incrementTypeCount(tabId, entry, type);
 				*/
 
-				//check for https
-				/*
-				if(details.url.startsWith('https')) {
-					type = type + '(s)';
-				}
-				*/
-				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type});
+				
+				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type, resourceType: details.type});
 			}
 			else {
 				console.log("onBeforeRequest: requestId already in map");
@@ -142,58 +147,28 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 );
 
 chrome.webRequest.onCompleted.addListener(function (details) {
-		var tabId = details.tabId;
-		var requestId = details.requestId;
-		if(tabId && tabId !== -1) {	//check if tabId is valid
-	  		var entry = tabs.get(tabId);
-			if(typeof entry !== "undefined") {	//check if an entry exists for this tab
-				var reqEntry = entry.reqMap.get(requestId);
-				if(typeof reqEntry !== "undefined") {	//check if requestId is already used
-					reqEntry.completed = details.timeStamp;
-					reqEntry.finished = true;
-				}
-				else {
-					console.log("onCompleted: requestId not in map");
-				}
-			}
+		var reqEntry = getReqEntry(details.tabId, details.requestId);
+		if (reqEntry !== -1) {
+			reqEntry.completed = details.timeStamp;
+			reqEntry.finished = true;
 		}
 	},
 	{urls: ["<all_urls>"]}
 );
 
 chrome.webRequest.onSendHeaders.addListener(function (details) {
-		var tabId = details.tabId;
-		var requestId = details.requestId;
-		if(tabId && tabId !== -1) {	//check if tabId is valid
-	  		var entry = tabs.get(tabId);
-			if(typeof entry !== "undefined") {	//check if an entry exists for this tab
-				var reqEntry = entry.reqMap.get(requestId);
-				if(typeof reqEntry !== "undefined") {	//check if requestId is already used
-					reqEntry.requestSent = details.timeStamp;
-				}
-				else {
-					console.log("onSendHeaders: requestId not in map");
-				}
-			}
+		var reqEntry = getReqEntry(details.tabId, details.requestId);
+		if (reqEntry !== -1) {
+			reqEntry.requestSent = details.timeStamp;
 		}
 	},
 	{urls: ["<all_urls>"]}
 );
 
 chrome.webRequest.onResponseStarted.addListener(function (details) {
-		var tabId = details.tabId;
-		var requestId = details.requestId;
-		if(tabId && tabId !== -1) {	//check if tabId is valid
-	  		var entry = tabs.get(tabId);
-			if(typeof entry !== "undefined") {	//check if an entry exists for this tab
-				var reqEntry = entry.reqMap.get(requestId);
-				if(typeof reqEntry !== "undefined") {	//check if requestId is already used
-					reqEntry.responseReceived = details.timeStamp;
-				}
-				else {
-					console.log("onResponseStarted: requestId not in map");
-				}
-			}
+		var reqEntry = getReqEntry(details.tabId, details.requestId);
+		if (reqEntry !== -1) {
+			reqEntry.responseReceived = details.timeStamp;
 		}
 	},
 	{urls: ["<all_urls>"]}
@@ -214,8 +189,7 @@ chrome.runtime.onMessage.addListener(
 		    break;
 		  case 'match':
 		  	//ToDo: implement correct logic
-			  setMatchType(request.reqDetails, request.contentType)
-		  	console.log("bg.js: Match message received, type = " + request.contentType);
+			setMatchType(request.reqDetails, request.contentType)
 		    break;
 		  default:
 		    console.log("Unknown Message received");
@@ -228,13 +202,15 @@ TODO implement
  */
 function setMatchType(reqDetails, matchType){
 	console.log("bg.js: Match message received, type = " + matchType);
+	var reqEntry = getReqEntry(reqDetails.tabId, reqDetails.requestId);
+	if (reqEntry !== -1) {
+		reqEntry.contentType = matchType;
+		incrementTypeCount(matchType);
+	}
 }
 
 //This method is called when the Extension is activated
-window.addEventListener('load', function(evt) {
-	getEasyList();
-	//ToDo: Call get EasyList function
-});
+//window.addEventListener('load', getEasyList);
 
 function getEasyList() {
 	console.log("getEasyList function called");
