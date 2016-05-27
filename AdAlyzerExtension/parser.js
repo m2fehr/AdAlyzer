@@ -483,317 +483,326 @@ Um Message an Contentscript zu senden: chrome.tabs.sendMessage(reqDetails.tabId,
 
 function match(reqDetails) {
 	console.log("matching url: " + reqDetails.url);
-	chrome.storage.local.get('parsedEasyList', function(data){
-		var adMatch = false;
-		var easyList = data.parsedEasyList;
-		for(var i = 0; i < easyList.length; i++ ){
-			var tempAdRule = easyList[i];
-			var tempMatchRule = new RegExp(tempAdRule.Matchrule);
-			console.log(tempAdRule.Matchrule);
-			if(tempMatchRule.test(reqDetails.url)){
-				if(tempAdRule.HidingRule == 1){
+	chrome.storage.local.get('parsedPrivacyList', function(list){
 
-					//variable wird auf true gesetzt, falls z.B. die DomainList der Regel ein Match ausschliesst.
-					var noHidingMatch = false;
+		var tMatch = false;
+		var privacyList = list.parsedPrivacyList;
+		for(var j = 0; j < privacyList.length; j++){
+			var tempTRule = privacyList[j];
+			var tempTMatchRule = new RegExp(tempTRule.Matchrule);
+			if(tempTMatchRule.test(reqDetails.url)){
+				if(tempTRule.Options == 1){
+					/*
+					 TODO: Bearbeiten der Optionen.
+					 */
+				}
 
-					//variable wird auf true gesetzt, falls eine Domain aus der DomainList der url entspricht.
-					var mHDomain = false;
+				tMatch = true;
+			}
+		}
 
-					//Testen ob Regel auf gewisse Domains eingeschränkt ist.
-					if(tempAdRule.DomainList.length > 0){
-						/*
-						TODO: effektiv vom Nutzer aufgerufene URL testen gegen DomainList.
-						 */
-						for(var hDCounter = 0; hDCounter < tempAdRule.DomainList.length; hDCounter++){
-							var hDTemp = tempAdRule.DomainList[hDCounter];
-							if(reqDetails.url.indexOf(hDTemp.rule) != -1){
-								if(hDTemp.inverted == 0){
-									//domain und url matchen und regel ist nicht invertiert --> match möglich.
-									mHDomain = true;
-								}else{
-									//domain und url matchen aber regel ist invertiert --> match ist unmöglich.
-									noHidingMatch = true;
-									break;
+		/*
+		 TODO: Kein Match: Ad, Content?
+		 */
+		if(tMatch){
+			return;
+		}
+
+		chrome.storage.local.get('parsedEasyList', function(data){
+			var adMatch = false;
+			var easyList = data.parsedEasyList;
+			for(var i = 0; i < easyList.length; i++ ){
+				var tempAdRule = easyList[i];
+				var tempMatchRule = new RegExp(tempAdRule.Matchrule);
+				console.log(tempAdRule.Matchrule);
+				if(tempMatchRule.test(reqDetails.url)){
+					if(tempAdRule.HidingRule == 1){
+
+						//variable wird auf true gesetzt, falls z.B. die DomainList der Regel ein Match ausschliesst.
+						var noHidingMatch = true;
+
+						//variable wird auf true gesetzt, falls eine Domain aus der DomainList der url entspricht.
+						var mHDomain = true;
+
+						//Testen ob Regel auf gewisse Domains eingeschränkt ist.
+						if(tempAdRule.DomainList.length > 0){
+							/*
+							TODO: effektiv vom Nutzer aufgerufene URL testen gegen DomainList.
+							 */
+							noHidingMatch = false;
+							for(var hDCounter = 0; hDCounter < tempAdRule.DomainList.length; hDCounter++){
+								var hDTemp = tempAdRule.DomainList[hDCounter];
+								if(reqDetails.url.indexOf(hDTemp.rule) != -1){
+									if(hDTemp.inverted == 0){
+										//domain und url matchen und regel ist nicht invertiert --> match möglich.
+										mHDomain = true;
+									}else{
+										//domain und url matchen aber regel ist invertiert --> match ist unmöglich.
+										noHidingMatch = true;
+										break;
+									}
 								}
-							}
 
+							}
+							//falls keine der domains auf die url matcht, kann
+							if(noHidingMatch){
+								mHDomain = false;
+								continue;
+							}
 						}
-						//falls keine der domains auf die url matcht, kann
-						if(noHidingMatch){
-							mHDomain = false;
+
+						if(mHDomain){
+							chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response){
+
+							});
+							console.log("Hiding Rule. Message an Content Script gesendet!   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
+
+							//return '-';
+						}else{
 							continue;
 						}
 					}
+					if(tempAdRule.Options == 1){
+						/*TODO:
+						Testen der Optionen.
+						 */
+						if(!testMatchOptions(reqDetails, tempAdRule)){
+							continue;
+						}
 
-					if(mHDomain){
-						chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response){
-
-						});
-						console.log("Hiding Rule. Message an Content Script gesendet!   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
-
-						//return '-';
-					}else{
-						continue;
 					}
-				}
-				if(tempAdRule.Options == 1){
+					//regel matcht auf URL und kein eintrag der RuleList oder OptionList verhindert ein match --> ist ein Match.
+					adMatch = true;
+
 					/*TODO:
-					Testen der Optionen.
+					soll nach einem Match weiter getestet werden?
 					 */
-
-					//variable, falls die RuleList oder OptionList der aktuell geprüften Regel ein Match ausschliesst.
-					var noMatch = false;
-
-					//prüfen, ob die RuleList der Regel ein Match zulässt.
-					for(var ruleCounter = 0; ruleCounter < tempAdRule.RuleList.length; ruleCounter++){
-						switch(tempAdRule.RuleList[ruleCounter].rule){
-							case "third-party":
-								if(tempAdRule.RuleList.inverted == 0){
-									//regel ist nicht invertiert. Wird nur auf third-party seiten angewendet. Domain der url darf nicht mit der url der eigentlich aufgerufenen seite übereinstimmen.
-									//(bsp: aufruf: 20min.ch, request geht auf ad.com --> match. 20min.ch, request auf 20min.ch --> kein match.
-								}
-								else{
-									//regel ist invertiert. Wird nur auf die eigentlich aufgerufene Seite angewendet.
-									//ggt. von oben.
-								}
-								break;
-							case "domain":
-								//variable tempDomainMatches wird auf true gesetzt, falls die URL die bedingung der regel erfüllt.
-								var tempDomainMatches = false;
-
-								for(var domainCount = 0; domainCount < tempAdRule.DomainList.length; domainCount++){
-									var tempDomain = tempAdRule.DomainList[domainCount];
-									if(tempDomain.indexOf('~') == -1){
-										//Domain ist NICHT invertiert. Url muss der domain entsprechen, damit tempDomainMatches auf true gesetzt werden kann.
-
-										if(reqDetails.url.indexOf(tempDomain) != -1){
-											//Domain matcht auf url. Setzen von tempDomainMatches auf true. for-loop muss zuende laufen, falls eine andere Regel ein Match wiederum ausschliesst.
-
-											console.log("Matching Domain: URL: " + reqDetails.url + ", DOMAIN: " + tempDomain);
-											tempDomainMatches = true;
-										}
-									}else{
-										//Domain IST invertiert! Url darf der domain NICHT entsprechen. Sonst muss noMatch auf true gesetzt werden, da ein Match nicht möglich ist.
-
-										tempDomain = tempDomain.replace('~','');
-										if(reqDetails.url.indexOf(tempDomain) != -1){
-											//Domain matcht auf url. Match ist somit unmöglich. setzen von tempDomainMatch auf false und unterbrechen der for-loop für diese Regel.
-											console.log("INVERTED Matching Domain: URL: " + reqDetails.url + ", DOMAIN: ~" + tempDomain);
-											tempDomainMatches = false;
-											break;
-										}
-									}
-								}
-								if(!tempDomainMatches){
-									//die domain-rule schliesst ein match der url mit dieser regel aus.
-									noMatch = true;
-								}
-								break;
-							case "match-case":
-								//diese Regel kommt in keiner der beiden bisher verwendeten Listen vor.
-								//daher wird sie an dieser Stelle nicht implementiert.
-								break;
-							case "collapse":
-								//diese Regel kommt in keiner der beiden bisher verwendeten Listen vor.
-								//daher wird sie an dieser Stelle nicht implementiert.
-								break;
-							case "donottrack":
-								//diese Regel hat keinen Einfluss auf unsere Anwendung und wird daher ignoriert.
-								break;
-							default:
-								alert("unknown rule in RuleList" + tempAdRule.RuleList[ruleCounter].rule);
-						}
-
-						//falls ein Match nicht mehr Möglich ist, kann die for-loop unterbrochen werden.
-						if(noMatch){
-							break;
-						}
-					}
-
-					//falls kein Match möglich ist, kann die for-loop für diese Regel übersprungen werden.
-					if(noMatch){
-						continue;
-					}
-
-					//die var Match wird von jeder Regel in der for-loop auf true gesetzt, falls trotz der Regel ein match vorliegt. ist die Variable am Ende der for-loop noch auf false, liegt kein match vor.
-					var match = false;
-
-					//prüfen, ob die OptionList der Regel ein Match zulässt.
-					for(var optionCounter = 0; optionCounter < tempAdRule.OptionList.length; optionCounter++){
-
-						//noMatchPossible wird auf true gesetzt, falls bei einer Regel festgestellt wird, dass ein Match für diesen Request unmöglich ist (Beispiel: resourceType = script, Regel = ~script).
-						//for-loop kann also beendet werden.
-						var noMatchPossible = false;
-						switch(tempAdRule.OptionList[optionCounter].rule){
-							/*
-							TODO:
-							Hier die html-Optionen prüfen (reqDetails.resourceType)
-							 "main_frame", "sub_frame", "stylesheet", "script", "image", "object", "xmlhttprequest", or "other"
-							 alle typen: script, image, stylesheet, object, xmlhttprequest, object-subrequest, subdocument, ping, document, elemhide, generichide, genericblock, other, third-party, domain,
-							 */
-							case "script":
-								//testen, ob resource Type des Requests script ist (mit der rule der OptionList überein stimmt).
-								if(reqDetails.resourceType == "script"){
-									//Testen, ob regel invertiert ist.
-									if(tempAdRule.OptionList[optionCounter].inverted == 0){
-										//regel ist NICHT invertiert und stimmt mit OptionList überein. Ist ein match.
-										match = true;
-									}else{
-										//regel IST invertiert und stimmt mit OptionList überein. Match ist somit ausgeschlossen.
-										noMatchPossible = true;
-									}
-								}
-
-								break;
-
-							case "image":
-								//bearbeitung wie script.
-								if(reqDetails.resourceType == "image"){
-									if(tempAdRule.OptionList[optionCounter].inverted == 0){
-										match = true;
-									}else{
-										noMatchPossible = true;
-									}
-								}
-
-								break;
-
-							case "stylesheet":
-								//bearbeitung wie script
-								if(reqDetails.resourceType == "stylesheet"){
-									if(tempAdRule.OptionList[optionCounter].inverted == 0){
-										match = true;
-									}else{
-										noMatchPossible = true;
-									}
-								}
-								break;
-
-							case "object":
-								//bearbeitung wie script.
-								if(reqDetails.resourceType == "object"){
-									if(tempAdRule.OptionList[optionCounter].inverted == 0){
-										match = true;
-									}else{
-										noMatchPossible = true;
-									}
-								}
-								break;
-
-							case "xmlhttprequest":
-								//bearbeitung wie script.
-								if(reqDetails.resourceType == "xmlhttprequest"){
-									if(tempAdRule.OptionList[optionCounter].inverted == 0){
-										match = true;
-									}else{
-										noMatchPossible = true;
-									}
-								}
-								break;
-
-							case "object-subrequest":
-								//Diese Regel kann nicht bearbeitet werden, da keine Informationen vom Browser zur Verfügung gestellt werden.
-								//AdBlock Plus behandelt diese Regel wie die normale "object"-Regel.
-								//Daher machen wir dies an dieser stelle genau so.
-								if(reqDetails.resourceType == "object"){
-									if(tempAdRule.OptionList[optionCounter].inverted == 0){
-										match = true;
-									}else{
-										noMatchPossible = true;
-									}
-								}
-								break;
-
-							case "subdocument":
-								if(reqDetails.resourceType == "sub_frame"){
-									if(tempAdRule.OptionList[optionCounter].inverted == 0){
-										match = true;
-									}else{
-										noMatchPossible = true;
-									}
-								}
-								break;
-
-							case "document":
-								//Diese Regel kommt in den zwei aktuell verwendeten Listen nicht vor und wird daher ignoriert.
-								console.log("unimplemented option document in rule " + tempMatchRule);
-								break;
-							case "elemhide":
-								//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
-								break;
-							case "generichide":
-								//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
-								break;
-							case "genericblock":
-								//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
-								break;
-							case "other":
-								//bearbeitung wie script.
-								if(reqDetails.resourceType == "other"){
-									if(tempAdRule.OptionList[optionCounter].inverted == 0){
-										match = true;
-									}else{
-										noMatchPossible = true;
-									}
-								}
-								break;
-							default:
-								alert("unbekannte Regel" + tempAdRule.OptionList[optionCounter].rule);
-						}
-
-						if(noMatchPossible){
-							match = false;
-							break;
-						}
-					}
-					if(noMatchPossible){
-						match = false;
-						continue;
-					}
-					if(!match){
-						continue;
-					}
-
+					return "ad";
 				}
-				//regel matcht auf URL und kein eintrag der RuleList oder OptionList verhindert ein match --> ist ein Match.
-				adMatch = true;
-
-				/*TODO:
-				soll nach einem Match weiter getestet werden?
-				 */
-				return "ad";
 			}
-		}
-		/*
-		TODO: Kein Match: Content? Tracker?
-		 */
+		});
+	});
+}
 
-		if(!adMatch){
-			chrome.storage.local.get('parsedPrivacyList', function(list){
-				var tMatch = false;
-				var privacyList = list.parsedPrivacyList;
-				for(var j = 0; j < privacyList.length; j++){
-					var tempTRule = privacyList[j];
-					if(tempTRule.Matchrule.test(reqDetails.url)){
-						if(tempTRule.Options == 1){
-							/*
-							TODO: Bearbeiten der Optionen.
-							 */
+function testMatchOptions (reqDetails, mRule){
+	var tempRule = mRule;
+
+	//tempMatchRule ist die MatchRule als RegExp
+	var tempMatchRule = new RegExp(tempRule.Matchrule);
+
+	//variable, falls die RuleList oder OptionList der aktuell geprüften Regel ein Match ausschliesst.
+	var noMatch = false;
+
+	//prüfen, ob die RuleList der Regel ein Match zulässt.
+	for(var ruleCounter = 0; ruleCounter < tempRule.RuleList.length; ruleCounter++){
+		switch(tempRule.RuleList[ruleCounter].rule){
+			case "third-party":
+				if(tempRule.RuleList.inverted == 0){
+					//regel ist nicht invertiert. Wird nur auf third-party seiten angewendet. Domain der url darf nicht mit der url der eigentlich aufgerufenen seite übereinstimmen.
+					//(bsp: aufruf: 20min.ch, request geht auf ad.com --> match. 20min.ch, request auf 20min.ch --> kein match.
+				}
+				else{
+					//regel ist invertiert. Wird nur auf die eigentlich aufgerufene Seite angewendet.
+					//ggt. von oben.
+				}
+				break;
+			case "domain":
+				//variable tempDomainMatches wird auf true gesetzt, falls die URL die bedingung der regel erfüllt.
+				var tempDomainMatches = false;
+
+				for(var domainCount = 0; domainCount < tempRule.DomainList.length; domainCount++){
+					var tempDomain = tempRule.DomainList[domainCount];
+					if(tempDomain.indexOf('~') == -1){
+						//Domain ist NICHT invertiert. Url muss der domain entsprechen, damit tempDomainMatches auf true gesetzt werden kann.
+
+						if(reqDetails.url.indexOf(tempDomain) != -1){
+							//Domain matcht auf url. Setzen von tempDomainMatches auf true. for-loop muss zuende laufen, falls eine andere Regel ein Match wiederum ausschliesst.
+
+							console.log("Matching Domain: URL: " + reqDetails.url + ", DOMAIN: " + tempDomain);
+							tempDomainMatches = true;
 						}
+					}else{
+						//Domain IST invertiert! Url darf der domain NICHT entsprechen. Sonst muss noMatch auf true gesetzt werden, da ein Match nicht möglich ist.
 
-						tMatch = true;
+						tempDomain = tempDomain.replace('~','');
+						if(reqDetails.url.indexOf(tempDomain) != -1){
+							//Domain matcht auf url. Match ist somit unmöglich. setzen von tempDomainMatch auf false und unterbrechen der for-loop für diese Regel.
+							console.log("INVERTED Matching Domain: URL: " + reqDetails.url + ", DOMAIN: ~" + tempDomain);
+							tempDomainMatches = false;
+							break;
+						}
+					}
+				}
+				if(!tempDomainMatches){
+					//die domain-rule schliesst ein match der url mit dieser regel aus.
+					noMatch = true;
+				}
+				break;
+			case "match-case":
+				//diese Regel kommt in keiner der beiden bisher verwendeten Listen vor.
+				//daher wird sie an dieser Stelle nicht implementiert.
+				break;
+			case "collapse":
+				//diese Regel kommt in keiner der beiden bisher verwendeten Listen vor.
+				//daher wird sie an dieser Stelle nicht implementiert.
+				break;
+			case "donottrack":
+				//diese Regel hat keinen Einfluss auf unsere Anwendung und wird daher ignoriert.
+				break;
+			default:
+				alert("unknown rule in RuleList" + tempRule.RuleList[ruleCounter].rule);
+		}
+
+		//falls ein Match nicht mehr Möglich ist, kann die for-loop unterbrochen werden.
+		if(noMatch){
+			break;
+		}
+	}
+
+	//falls kein Match möglich ist, kann false zurückgegeben werden.
+	if(noMatch){
+		return false;
+	}
+
+	//die var match wird von jeder Regel in der for-loop auf true gesetzt, falls trotz der Regel ein match vorliegt. ist die Variable am Ende der for-loop noch auf false, liegt kein match vor.
+	var match = false;
+
+	//prüfen, ob die OptionList der Regel ein Match zulässt.
+	for(var optionCounter = 0; optionCounter < tempRule.OptionList.length; optionCounter++){
+
+		//noMatchPossible wird auf true gesetzt, falls bei einer Regel festgestellt wird, dass ein Match für diesen Request unmöglich ist (Beispiel: resourceType = script, Regel = ~script).
+		//for-loop kann also beendet werden.
+		var noMatchPossible = false;
+		switch(tempRule.OptionList[optionCounter].rule){
+			/*
+			 TODO:
+			 Hier die html-Optionen prüfen (reqDetails.resourceType)
+			 "main_frame", "sub_frame", "stylesheet", "script", "image", "object", "xmlhttprequest", or "other"
+			 alle typen: script, image, stylesheet, object, xmlhttprequest, object-subrequest, subdocument, ping, document, elemhide, generichide, genericblock, other, third-party, domain,
+			 */
+			case "script":
+				//testen, ob resource Type des Requests script ist (mit der rule der OptionList überein stimmt).
+				if(reqDetails.resourceType == "script"){
+					//Testen, ob regel invertiert ist.
+					if(tempRule.OptionList[optionCounter].inverted == 0){
+						//regel ist NICHT invertiert und stimmt mit OptionList überein. Ist ein match.
+						match = true;
+					}else{
+						//regel IST invertiert und stimmt mit OptionList überein. Match ist somit ausgeschlossen.
+						noMatchPossible = true;
 					}
 				}
 
-				/*
-				TODO: Kein Match: Content?
-				 */
-				if(!tMatch){
+				break;
 
+			case "image":
+				//bearbeitung wie script.
+				if(reqDetails.resourceType == "image"){
+					if(tempRule.OptionList[optionCounter].inverted == 0){
+						match = true;
+					}else{
+						noMatchPossible = true;
+					}
 				}
-			})
+
+				break;
+
+			case "stylesheet":
+				//bearbeitung wie script
+				if(reqDetails.resourceType == "stylesheet"){
+					if(tempRule.OptionList[optionCounter].inverted == 0){
+						match = true;
+					}else{
+						noMatchPossible = true;
+					}
+				}
+				break;
+
+			case "object":
+				//bearbeitung wie script.
+				if(reqDetails.resourceType == "object"){
+					if(tempRule.OptionList[optionCounter].inverted == 0){
+						match = true;
+					}else{
+						noMatchPossible = true;
+					}
+				}
+				break;
+
+			case "xmlhttprequest":
+				//bearbeitung wie script.
+				if(reqDetails.resourceType == "xmlhttprequest"){
+					if(tempRule.OptionList[optionCounter].inverted == 0){
+						match = true;
+					}else{
+						noMatchPossible = true;
+					}
+				}
+				break;
+
+			case "object-subrequest":
+				//Diese Regel kann nicht bearbeitet werden, da keine Informationen vom Browser zur Verfügung gestellt werden.
+				//AdBlock Plus behandelt diese Regel wie die normale "object"-Regel.
+				//Daher machen wir dies an dieser stelle genau so.
+				if(reqDetails.resourceType == "object"){
+					if(tempRule.OptionList[optionCounter].inverted == 0){
+						match = true;
+					}else{
+						noMatchPossible = true;
+					}
+				}
+				break;
+
+			case "subdocument":
+				if(reqDetails.resourceType == "sub_frame"){
+					if(tempRule.OptionList[optionCounter].inverted == 0){
+						match = true;
+					}else{
+						noMatchPossible = true;
+					}
+				}
+				break;
+
+			case "document":
+				//Diese Regel kommt in den zwei aktuell verwendeten Listen nicht vor und wird daher ignoriert.
+				console.log("unimplemented option document in rule " + tempMatchRule);
+				break;
+			case "elemhide":
+				//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
+				break;
+			case "generichide":
+				//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
+				break;
+			case "genericblock":
+				//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
+				break;
+			case "other":
+				//bearbeitung wie script.
+				if(reqDetails.resourceType == "other"){
+					if(tempRule.OptionList[optionCounter].inverted == 0){
+						match = true;
+					}else{
+						noMatchPossible = true;
+					}
+				}
+				break;
+			default:
+				alert("unbekannte Regel" + tempRule.OptionList[optionCounter].rule);
 		}
-	});
+
+		if(noMatchPossible){
+			match = false;
+			break;
+		}
+	}
+	if(noMatchPossible){
+		match = false;
+		return false;
+	}
+	if(!match){
+		return false;
+	}
+	return true;
 }
 
 function testMatch(){
@@ -818,3 +827,220 @@ Wennds mit de easylist wetsch versueche, gisch id konsole "getEasyList();" ih,
 den rüefts der d parse function mit de easylist als parameter uf.
 
 */
+
+/*
+ //variable, falls die RuleList oder OptionList der aktuell geprüften Regel ein Match ausschliesst.
+ var noMatch = false;
+
+ //prüfen, ob die RuleList der Regel ein Match zulässt.
+ for(var ruleCounter = 0; ruleCounter < tempAdRule.RuleList.length; ruleCounter++){
+ switch(tempAdRule.RuleList[ruleCounter].rule){
+ case "third-party":
+ if(tempAdRule.RuleList.inverted == 0){
+ //regel ist nicht invertiert. Wird nur auf third-party seiten angewendet. Domain der url darf nicht mit der url der eigentlich aufgerufenen seite übereinstimmen.
+ //(bsp: aufruf: 20min.ch, request geht auf ad.com --> match. 20min.ch, request auf 20min.ch --> kein match.
+ }
+ else{
+ //regel ist invertiert. Wird nur auf die eigentlich aufgerufene Seite angewendet.
+ //ggt. von oben.
+ }
+ break;
+ case "domain":
+ //variable tempDomainMatches wird auf true gesetzt, falls die URL die bedingung der regel erfüllt.
+ var tempDomainMatches = false;
+
+ for(var domainCount = 0; domainCount < tempAdRule.DomainList.length; domainCount++){
+ var tempDomain = tempAdRule.DomainList[domainCount];
+ if(tempDomain.indexOf('~') == -1){
+ //Domain ist NICHT invertiert. Url muss der domain entsprechen, damit tempDomainMatches auf true gesetzt werden kann.
+
+ if(reqDetails.url.indexOf(tempDomain) != -1){
+ //Domain matcht auf url. Setzen von tempDomainMatches auf true. for-loop muss zuende laufen, falls eine andere Regel ein Match wiederum ausschliesst.
+
+ console.log("Matching Domain: URL: " + reqDetails.url + ", DOMAIN: " + tempDomain);
+ tempDomainMatches = true;
+ }
+ }else{
+ //Domain IST invertiert! Url darf der domain NICHT entsprechen. Sonst muss noMatch auf true gesetzt werden, da ein Match nicht möglich ist.
+
+ tempDomain = tempDomain.replace('~','');
+ if(reqDetails.url.indexOf(tempDomain) != -1){
+ //Domain matcht auf url. Match ist somit unmöglich. setzen von tempDomainMatch auf false und unterbrechen der for-loop für diese Regel.
+ console.log("INVERTED Matching Domain: URL: " + reqDetails.url + ", DOMAIN: ~" + tempDomain);
+ tempDomainMatches = false;
+ break;
+ }
+ }
+ }
+ if(!tempDomainMatches){
+ //die domain-rule schliesst ein match der url mit dieser regel aus.
+ noMatch = true;
+ }
+ break;
+ case "match-case":
+ //diese Regel kommt in keiner der beiden bisher verwendeten Listen vor.
+ //daher wird sie an dieser Stelle nicht implementiert.
+ break;
+ case "collapse":
+ //diese Regel kommt in keiner der beiden bisher verwendeten Listen vor.
+ //daher wird sie an dieser Stelle nicht implementiert.
+ break;
+ case "donottrack":
+ //diese Regel hat keinen Einfluss auf unsere Anwendung und wird daher ignoriert.
+ break;
+ default:
+ alert("unknown rule in RuleList" + tempAdRule.RuleList[ruleCounter].rule);
+ }
+
+ //falls ein Match nicht mehr Möglich ist, kann die for-loop unterbrochen werden.
+ if(noMatch){
+ break;
+ }
+ }
+
+ //falls kein Match möglich ist, kann die for-loop für diese Regel übersprungen werden.
+ if(noMatch){
+ continue;
+ }
+
+ //die var Match wird von jeder Regel in der for-loop auf true gesetzt, falls trotz der Regel ein match vorliegt. ist die Variable am Ende der for-loop noch auf false, liegt kein match vor.
+ var match = false;
+
+ //prüfen, ob die OptionList der Regel ein Match zulässt.
+ for(var optionCounter = 0; optionCounter < tempAdRule.OptionList.length; optionCounter++){
+
+ //noMatchPossible wird auf true gesetzt, falls bei einer Regel festgestellt wird, dass ein Match für diesen Request unmöglich ist (Beispiel: resourceType = script, Regel = ~script).
+ //for-loop kann also beendet werden.
+ var noMatchPossible = false;
+ switch(tempAdRule.OptionList[optionCounter].rule){
+ ///*
+ //TODO:
+ //Hier die html-Optionen prüfen (reqDetails.resourceType)
+ //"main_frame", "sub_frame", "stylesheet", "script", "image", "object", "xmlhttprequest", or "other"
+ //alle typen: script, image, stylesheet, object, xmlhttprequest, object-subrequest, subdocument, ping, document, elemhide, generichide, genericblock, other, third-party, domain,
+ //*/
+/*
+case "script":
+//testen, ob resource Type des Requests script ist (mit der rule der OptionList überein stimmt).
+if(reqDetails.resourceType == "script"){
+	//Testen, ob regel invertiert ist.
+	if(tempAdRule.OptionList[optionCounter].inverted == 0){
+		//regel ist NICHT invertiert und stimmt mit OptionList überein. Ist ein match.
+		match = true;
+	}else{
+		//regel IST invertiert und stimmt mit OptionList überein. Match ist somit ausgeschlossen.
+		noMatchPossible = true;
+	}
+}
+
+break;
+
+case "image":
+//bearbeitung wie script.
+if(reqDetails.resourceType == "image"){
+	if(tempAdRule.OptionList[optionCounter].inverted == 0){
+		match = true;
+	}else{
+		noMatchPossible = true;
+	}
+}
+
+break;
+
+case "stylesheet":
+//bearbeitung wie script
+if(reqDetails.resourceType == "stylesheet"){
+	if(tempAdRule.OptionList[optionCounter].inverted == 0){
+		match = true;
+	}else{
+		noMatchPossible = true;
+	}
+}
+break;
+
+case "object":
+//bearbeitung wie script.
+if(reqDetails.resourceType == "object"){
+	if(tempAdRule.OptionList[optionCounter].inverted == 0){
+		match = true;
+	}else{
+		noMatchPossible = true;
+	}
+}
+break;
+
+case "xmlhttprequest":
+//bearbeitung wie script.
+if(reqDetails.resourceType == "xmlhttprequest"){
+	if(tempAdRule.OptionList[optionCounter].inverted == 0){
+		match = true;
+	}else{
+		noMatchPossible = true;
+	}
+}
+break;
+
+case "object-subrequest":
+//Diese Regel kann nicht bearbeitet werden, da keine Informationen vom Browser zur Verfügung gestellt werden.
+//AdBlock Plus behandelt diese Regel wie die normale "object"-Regel.
+//Daher machen wir dies an dieser stelle genau so.
+if(reqDetails.resourceType == "object"){
+	if(tempAdRule.OptionList[optionCounter].inverted == 0){
+		match = true;
+	}else{
+		noMatchPossible = true;
+	}
+}
+break;
+
+case "subdocument":
+if(reqDetails.resourceType == "sub_frame"){
+	if(tempAdRule.OptionList[optionCounter].inverted == 0){
+		match = true;
+	}else{
+		noMatchPossible = true;
+	}
+}
+break;
+
+case "document":
+//Diese Regel kommt in den zwei aktuell verwendeten Listen nicht vor und wird daher ignoriert.
+console.log("unimplemented option document in rule " + tempMatchRule);
+break;
+case "elemhide":
+//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
+break;
+case "generichide":
+//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
+break;
+case "genericblock":
+//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
+break;
+case "other":
+//bearbeitung wie script.
+if(reqDetails.resourceType == "other"){
+	if(tempAdRule.OptionList[optionCounter].inverted == 0){
+		match = true;
+	}else{
+		noMatchPossible = true;
+	}
+}
+break;
+default:
+alert("unbekannte Regel" + tempAdRule.OptionList[optionCounter].rule);
+}
+
+if(noMatchPossible){
+	match = false;
+	break;
+}
+}
+if(noMatchPossible){
+	match = false;
+	continue;
+}
+if(!match){
+	continue;
+}
+
+ */
