@@ -427,19 +427,17 @@ function parse(listname, list) {
 						}
 
 						//Test ob Regel mit | beginnt: Regel steht am Anfang der URL
-						else if(/^\|/.test(temp)){
+						if(/^\|/.test(temp)){
 							temp = temp.replace(/^\|/, '^');
 						}
 
 						//Test ob Regel mit | endet: URL muss dort aufhören.
-						else if(/\|$/.test(temp)) {
+						if(/\|$/.test(temp)) {
 							temp = temp.replace(/\|$/, '$');
 						}
 
 						//alle anderen | in der Regel sollen Pipes darstellen.
-						else{
-							temp = temp.replace(/\|/g, '\\|');
-						}
+						temp = temp.replace(/\|/g, '\\|');
 					}
 
 					//Ersetzen von * am Anfang und Ende der Regel (hat keinen Einfluss auf das Matchen)
@@ -485,16 +483,21 @@ function match(reqDetails) {
 	console.log("matching url: " + reqDetails.url);
 	chrome.storage.local.get('parsedPrivacyList', function(list){
 
+		console.log("start test tracking list");
 		var tMatch = false;
 		var privacyList = list.parsedPrivacyList;
 		for(var j = 0; j < privacyList.length; j++){
 			var tempTRule = privacyList[j];
 			var tempTMatchRule = new RegExp(tempTRule.Matchrule);
 			if(tempTMatchRule.test(reqDetails.url)){
+				console.log("match auf tracking-list " + reqDetails.url + "   " + tempTMatchRule);
 				if(tempTRule.Options == 1){
 					/*
 					 TODO: Bearbeiten der Optionen.
 					 */
+					if(!testMatchOptions(reqDetails, tempTRule)){
+						continue;
+					}
 				}
 
 				tMatch = true;
@@ -505,10 +508,14 @@ function match(reqDetails) {
 		 TODO: Kein Match: Ad, Content?
 		 */
 		if(tMatch){
+			console.log("return auf tracking-liste " + tMatch);
+			setMatchType(reqDetails, "tracker");
 			return;
 		}
 
 		chrome.storage.local.get('parsedEasyList', function(data){
+			console.log("start test ad list");
+
 			var adMatch = false;
 			var easyList = data.parsedEasyList;
 			for(var i = 0; i < easyList.length; i++ ){
@@ -569,7 +576,6 @@ function match(reqDetails) {
 						if(!testMatchOptions(reqDetails, tempAdRule)){
 							continue;
 						}
-
 					}
 					//regel matcht auf URL und kein eintrag der RuleList oder OptionList verhindert ein match --> ist ein Match.
 					adMatch = true;
