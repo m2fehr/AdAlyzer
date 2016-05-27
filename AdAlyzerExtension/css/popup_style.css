@@ -1,13 +1,15 @@
 @import url(http://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100);
 
 div#title {
-  font-size: 150%;
-  padding: 10px;
+  font-size: 200%;
+  margin-bottom: 10px;
+  vertical-align: center;
+  text-align: center;
 }
 
 div#container {
-  width: 450px;
-  height: 370px;
+  width: 510px;
+  height: 400px;
 }
 
 .flexContainer {
