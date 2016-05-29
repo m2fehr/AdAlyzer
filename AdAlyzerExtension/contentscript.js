@@ -28,7 +28,15 @@ chrome.runtime.sendMessage({msgType, contentType, reqDetails}) mit msgType = 'ma
 
 //Called when this Contentscript receives a message
 chrome.runtime.onMessage.addListener(
-    function(reqDetails, sender, sendResponse) {
-
+    function(reqDetails, sender, matches) {
+        var contentType = "match";
+        for(var i = 0; i < matches.length; i++){
+            var selector = matches[i];
+            if(document.querySelector(selector.Matchrule)){
+                contentType = "ad";
+                break;
+            }
+        }
+        chrome.runtime.sendMessage('match', contentType, sender);
     }
 );

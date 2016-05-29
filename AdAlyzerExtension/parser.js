@@ -515,13 +515,13 @@ function match(reqDetails) {
 			for(var i = 0; i < easyList.length; i++ ){
 				var tempAdRule = easyList[i];
 				var tempMatchRule = new RegExp(tempAdRule.Matchrule);
-				if(tempMatchRule.test(reqDetails.url)){
+				if(tempAdRule.HidingRule == 0 && tempMatchRule.test(reqDetails.url)) {
 
-					if(tempAdRule.Options == 1){
+					if (tempAdRule.Options == 1) {
 						/*TODO:
 						 Testen der Optionen.
 						 */
-						if(!testMatchOptions(reqDetails, tempAdRule)){
+						if (!testMatchOptions(reqDetails, tempAdRule)) {
 							continue;
 						}
 					}
@@ -529,61 +529,60 @@ function match(reqDetails) {
 					/*TODO:
 					 soll nach einem Match weiter getestet werden?
 					 */
-					//sofern es sich nicht um eine Hiding Rule handelt, kann hier der Matchtipe auf "ad" gesetzt werden
-					if(tempAdRule.HidingRule == 0){
-						console.log("match auf Regel: " + tempMatchRule);
-						setMatchType(reqDetails, "ad");
-						/*TODO:
-						 soll nach einem Match weiter getestet werden?
-						 */
-						return;
 
-					}else{
+					console.log("match auf Regel: " + tempMatchRule);
+					setMatchType(reqDetails, "ad");
+					/*TODO:
+					 soll nach einem Match weiter getestet werden?
+					 */
+					return;
 
-						//variable wird auf true gesetzt, falls z.B. die DomainList der Regel ein Match ausschliesst.
-						var noHidingMatch = true;
+				}else if(tempAdRule.HidingRule == 1){
 
-						//variable wird auf true gesetzt, falls eine Domain aus der DomainList der url entspricht.
-						var mHDomain = true;
+					//variable wird auf true gesetzt, falls z.B. die DomainList der Regel ein Match ausschliesst.
+					var noHidingMatch = false;
 
-						//Testen ob Regel auf gewisse Domains eingeschränkt ist.
-						if(tempAdRule.DomainList.length > 0){
-							/*
-							TODO: effektiv vom Nutzer aufgerufene URL testen gegen DomainList.
-							 */
-							noHidingMatch = false;
-							for(var hDCounter = 0; hDCounter < tempAdRule.DomainList.length; hDCounter++){
-								var hDTemp = tempAdRule.DomainList[hDCounter];
-								if(reqDetails.url.indexOf(hDTemp.rule) != -1){
-									if(hDTemp.inverted == 0){
-										//domain und url matchen und regel ist nicht invertiert --> match möglich.
-										mHDomain = true;
-									}else{
-										//domain und url matchen aber regel ist invertiert --> match ist unmöglich.
-										noHidingMatch = true;
-										break;
-									}
+					//variable wird auf true gesetzt, falls eine Domain aus der DomainList der url entspricht.
+					var mHDomain = true;
+
+					//Testen ob Regel auf gewisse Domains eingeschränkt ist.
+					if(tempAdRule.DomainList.length > 0){
+
+						//
+						noHidingMatch = false;
+						for(var hDCounter = 0; hDCounter < tempAdRule.DomainList.length; hDCounter++){
+							var hDTemp = tempAdRule.DomainList[hDCounter];
+							if(reqDetails.url.indexOf(hDTemp.rule) != -1){
+								if(hDTemp.inverted == 0){
+									//domain und url matchen und regel ist nicht invertiert --> match möglich.
+									mHDomain = true;
+								}else{
+									//domain und url matchen aber regel ist invertiert --> match ist unmöglich.
+									noHidingMatch = true;
+									break;
 								}
-
 							}
-							//falls keine der domains auf die url matcht, kann
-							if(noHidingMatch){
-								mHDomain = false;
-								continue;
-							}
-						}
 
-						if(mHDomain){
-							var hidingMatchesEntry = {tabId: reqDetails.tabId, reqDetails: reqDetails, response: ""};
-							hidingMatches.push(hidingMatchesEntry);
-							console.log("Hiding Rule.   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
 						}
+						//falls regel ein Match ausschliesst, kann for-loop abgebrochen werden.
+						if(noHidingMatch){
+							mHDomain = false;
+							continue;
+						}
+					}
+
+					if(mHDomain){
+						//var hidingMatchesEntry = {tabId: reqDetails.tabId, reqDetails: reqDetails, rule: tempAdRule};
+						hidingMatches.push(tempAdRule);
+						console.log("Hiding Rule.   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
 					}
 				}
 			}
 			if(hidingMatches.length > 0){
 				console.log("Hiding Rules an ContentScript gesendet.");
-				chrome.tabs.sendMessage(hidingMatches);
+				chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, hidingMatches);
+			}else{
+				setMatchType(reqDetails, "content");
 			}
 		});
 	});
