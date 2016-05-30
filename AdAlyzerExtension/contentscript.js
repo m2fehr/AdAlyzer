@@ -31,14 +31,13 @@ chrome.runtime.sendMessage({msgType, contentType, reqDetails}) mit msgType = 'ma
 chrome.runtime.onMessage.addListener(
     function(msg, sender, sendResponse) {
         var contentType = "content";
-        for(var i = 0; i < msg.matches.length; i++){
+        /*for(var i = 0; i < msg.matches.length; i++){
             var selector = msg.matches[i];
             if(document.querySelector(selector.Matchrule) ){
                 contentType = "ad";
                 break;
             }
-        }
-        sendResponse(contentType);
+        }*/
         chrome.runtime.sendMessage({msgType: 'match', contentType: contentType, reqDetails: msg.reqDetails});
     }
 );

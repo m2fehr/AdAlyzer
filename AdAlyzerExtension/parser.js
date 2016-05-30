@@ -587,7 +587,7 @@ function match(reqDetails) {
 			}
 			if(hidingMatches.length > 0){
 				console.log("Hiding Rules an ContentScript gesendet.");
-				chrome.tabs.sendMessage(reqDetails.tabId, {reqDetails: reqDetails, matches: hidingMatches}, function (type) {console.log("cs.js: responsefunction, type: " + type)});
+				chrome.tabs.sendMessage(reqDetails.tabId, {reqDetails: reqDetails/*, matches: hidingMatches*/}, function () {});
 				return "-";
 			}else{
 				//setMatchType(reqDetails, "content");

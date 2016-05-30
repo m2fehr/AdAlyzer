@@ -82,18 +82,22 @@ function getReqEntry(tabId, requestId) {
 
 function incrementTypeCount(tabId, entry, type) {
 	switch (type) {
-		case 'content':
+		case "content":
+			//console.log("content count: " + entry.elements.content);
 			entry.elements.content = entry.elements.content + 1;
 			break;
-		case 'ad':
+		case "ad":
 			entry.elements.ads = entry.elements.ads + 1;
 			chrome.browserAction.setBadgeText({text: entry.elements.ads.toString(), tabId: tabId});
 			break;
-		case 'tracker':
+		case "tracker":
 			entry.elements.tracker = entry.elements.tracker + 1;
 			break;
-		case '-':
+		case "-":
+			//console.log("incrementTypeCount: type = -");
 			break;
+		default: 
+			console.log("incrementTypeCount: default case, type:" + type);
 	}
 }
 
@@ -132,14 +136,17 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 				//-------------------------------------------------
 
 				//Differentiat between Content Type the right way
+				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: '-', resourceType: details.type});
 				
 				var type = match({tabId: tabId, requestId: requestId, resourceType: details.type, url: details.url});
 				console.log("returned type = " + type);
-				incrementTypeCount(tabId, entry, type);
+				if (type !== "-")
+					setMatchType({tabId: tabId, requestId: requestId}, type);
+				//incrementTypeCount(tabId, entry, type);
 				
 
 				
-				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type, resourceType: details.type});
+				//entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type, resourceType: details.type});
 			}
 			else {
 				console.log("onBeforeRequest: requestId already in map");
@@ -193,7 +200,6 @@ chrome.runtime.onMessage.addListener(
 	        }
 		    break;
 		  case 'match':
-		  	//ToDo: implement correct logic
 			setMatchType(request.reqDetails, request.contentType)
 		    break;
 		  default:
@@ -210,7 +216,10 @@ function setMatchType(reqDetails, matchType){
 	var reqEntry = getReqEntry(reqDetails.tabId, reqDetails.requestId);
 	if (reqEntry !== -1) {
 		reqEntry.contentType = matchType;
-		incrementTypeCount(matchType);
+		incrementTypeCount(reqDetails.tabId, tabs.get(reqDetails.tabId), matchType);
+	}
+	else {
+		console.log("setMatchType: reqEntry not found");
 	}
 }
 

@@ -60,6 +60,9 @@ window.addEventListener('load', function(evt) {
     var adsTotal = document.getElementById('adsTotal');
     var trackerTotal = document.getElementById('trackerTotal');
     var contentTotal = document.getElementById('contentTotal');
+    var adsPercent = document.getElementById('adsPercent');
+    var trackerPercent = document.getElementById('trackerPercent');
+    var contentPercent = document.getElementById('contentPercent');
     var DOMTime = document.getElementById('DOMTime');
     var loadTime = document.getElementById('loadTime');
     var dnsTime = document.getElementById('dnsTime');
@@ -104,10 +107,14 @@ window.addEventListener('load', function(evt) {
         totalRating.style.backgroundColor = getColor(value4);
 
         // First Tab
-        reqsTotal.innerHTML = reqMap.size;
+        var reqMapSize = reqMap.size;
+        reqsTotal.innerHTML = reqMapSize;
         adsTotal.innerHTML = currentTabEntry.elements.ads;
         trackerTotal.innerHTML = currentTabEntry.elements.tracker;
         contentTotal.innerHTML = currentTabEntry.elements.content;
+        adsPercent.innerHTML = ((100 / reqMapSize) * currentTabEntry.elements.ads).toFixed(0) + "%";
+        trackerPercent.innerHTML = ((100 / reqMapSize) * currentTabEntry.elements.tracker).toFixed(0) + "%";
+        contentPercent.innerHTML = ((100 / reqMapSize) * currentTabEntry.elements.content).toFixed(0) + "%";
         DOMTime.innerHTML = currentTabEntry.plt.dom + "s";
         loadTime.innerHTML = currentTabEntry.plt.load + "s";
         dnsTime.innerHTML = currentTabEntry.plt.dns + "s";
