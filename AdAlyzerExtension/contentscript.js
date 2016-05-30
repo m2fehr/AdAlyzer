@@ -13,8 +13,9 @@
                 // we have only 4 chars in our disposal including decimal point
                 var DOMTime = String(((t.domContentLoadedEventEnd  - start) / 1000).toPrecision(4)).substring(0, 5);
                 var loadTime = String(((t.loadEventEnd - start) / 1000).toPrecision(4)).substring(0, 5);
+                var dnsTime = String(((t.domainLookupEnd - t.domainLookupStart) / 1000).toPrecision(4)).substring(0, 5);
 
-                chrome.runtime.sendMessage({msgType: 'plt', DOMTime: DOMTime, loadTime: loadTime});
+                chrome.runtime.sendMessage({msgType: 'plt', DOMTime: DOMTime, loadTime: loadTime, dnsTime: dnsTime});
             }
         }, 0);
     }
@@ -28,15 +29,15 @@ chrome.runtime.sendMessage({msgType, contentType, reqDetails}) mit msgType = 'ma
 
 //Called when this Contentscript receives a message
 chrome.runtime.onMessage.addListener(
-    function(reqDetails, sender, matches) {
-        var contentType = "match";
-        for(var i = 0; i < matches.length; i++){
-            var selector = matches[i];
+    function(msg, sender, sendResponse) {
+        var contentType = "content";
+        for(var i = 0; i < msg.matches.length; i++){
+            var selector = msg.matches[i];
             if(document.querySelector(selector.Matchrule)){
                 contentType = "ad";
                 break;
             }
         }
-        chrome.runtime.sendMessage('match', contentType, sender);
+        chrome.runtime.sendMessage({msgType: 'match', contentType: contentType, reqDetails: msg.reqDetails});
     }
 );

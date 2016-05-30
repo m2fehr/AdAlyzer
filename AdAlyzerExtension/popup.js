@@ -62,6 +62,7 @@ window.addEventListener('load', function(evt) {
     var contentTotal = document.getElementById('contentTotal');
     var DOMTime = document.getElementById('DOMTime');
     var loadTime = document.getElementById('loadTime');
+    var dnsTime = document.getElementById('dnsTime');
     var pageRating = document.getElementById('pageRating');
     // Second Tab
     var adsRating = document.getElementById('adsRating');
@@ -109,6 +110,7 @@ window.addEventListener('load', function(evt) {
         contentTotal.innerHTML = currentTabEntry.elements.content;
         DOMTime.innerHTML = currentTabEntry.plt.dom + "s";
         loadTime.innerHTML = currentTabEntry.plt.load + "s";
+        dnsTime.innerHTML = currentTabEntry.plt.dns + "s";
         pageRating.innerHTML = totalRating.textContent;
         
         // Third Tab

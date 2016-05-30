@@ -130,8 +130,8 @@ function parse(listname, list) {
 								rule.Matchrule = temp;
 
 								//verarbeitung des Elementes abgeschlossen.
-								//parsedEasyList.push(rule);
-								//continue;
+								parsedEasyList.push(rule);
+								continue;
 							}
 							//test ob ##. (class)
 							else if(temp.indexOf("##.") != -1){
@@ -145,8 +145,8 @@ function parse(listname, list) {
 								rule.Matchrule = temp;
 
 								//verarbeitung des Elementes abgeschlossen.
-								//parsedEasyList.push(rule);
-								//continue;
+								parsedEasyList.push(rule);
+								continue;
 							}
 
 							//testen ob ##
@@ -168,8 +168,8 @@ function parse(listname, list) {
 								 */
 
 								//verarbeitung des Elementes abgeschlossen.
-								//parsedEasyList.push(rule);
-								//continue;
+								parsedEasyList.push(rule);
+								continue;
 							}
 
 							else{
@@ -202,8 +202,8 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							//parsedEasyList.push(rule);
-							//continue;
+							parsedEasyList.push(rule);
+							continue;
 						}
 
 						else if(temp.indexOf("##.") != -1 && temp.indexOf("@#") == -1){
@@ -230,8 +230,8 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							//parsedEasyList.push(rule);
-							//continue;
+							parsedEasyList.push(rule);
+							continue;
 						}
 
 						else if(temp.indexOf("##") != -1 && temp.indexOf("@#") == -1){
@@ -263,8 +263,8 @@ function parse(listname, list) {
 							 */
 
 							//verarbeitung des Elementes abgeschlossen.
-							//parsedEasyList.push(rule);
-							//continue;
+							parsedEasyList.push(rule);
+							continue;
 						}
 
 						//Behandeln der Ausnahmeregeln #@## (ID), #@#.(class)
@@ -291,8 +291,8 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							//parsedEasyList.push(rule);
-							//continue;
+							parsedEasyList.push(rule);
+							continue;
 						}
 
 						else if(temp.indexOf("#@#.") != -1){
@@ -317,8 +317,8 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							//parsedEasyList.push(rule);
-							//continue;
+							parsedEasyList.push(rule);
+							continue;
 						}
 
 						else{
@@ -574,13 +574,13 @@ function match(reqDetails) {
 					if(mHDomain){
 						//var hidingMatchesEntry = {tabId: reqDetails.tabId, reqDetails: reqDetails, rule: tempAdRule};
 						hidingMatches.push(tempAdRule);
-						console.log("Hiding Rule.   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
+						//console.log("Hiding Rule.   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
 					}
 				}
 			}
 			if(hidingMatches.length > 0){
 				console.log("Hiding Rules an ContentScript gesendet.");
-				chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, hidingMatches);
+				chrome.tabs.sendMessage(reqDetails.tabId, {reqDetails: reqDetails, matches: hidingMatches}, function () {});
 			}else{
 				setMatchType(reqDetails, "content");
 			}
@@ -616,7 +616,8 @@ function testMatchOptions (reqDetails, mRule){
 
 				for(var domainCount = 0; domainCount < tempRule.DomainList.length; domainCount++){
 					var tempDomain = tempRule.DomainList[domainCount];
-					if(tempDomain.indexOf('~') == -1){
+					console.log(tempDomain);
+					if(tempDomain.indexOf("~") === -1){
 						//Domain ist NICHT invertiert. Url muss der domain entsprechen, damit tempDomainMatches auf true gesetzt werden kann.
 
 						if(reqDetails.url.indexOf(tempDomain) != -1){

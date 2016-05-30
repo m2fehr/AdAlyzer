@@ -24,6 +24,29 @@ div#container {
 }
 
 .flexItemRight {
+  flex-basis: 30%;
+  margin: 5px;
+  margin-right: 20px;
+  text-align: right;
+}
+
+.flexItemMiddle {
+  flex-basis: 25%;
+  margin: 5px;
+  text-align: right;
+}
+
+.heading {
+  flex-basis: 100%;
+  margin: 5px;
+  font-weight: bold;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.flexItemRightRating {
   flex-basis: 55%;
   margin: 5px;
   text-align: center;
