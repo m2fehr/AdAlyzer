@@ -33,11 +33,12 @@ chrome.runtime.onMessage.addListener(
         var contentType = "content";
         for(var i = 0; i < msg.matches.length; i++){
             var selector = msg.matches[i];
-            if(document.querySelector(selector.Matchrule)){
+            if(document.querySelector(selector.Matchrule) ){
                 contentType = "ad";
                 break;
             }
         }
+        sendResponse(contentType);
         chrome.runtime.sendMessage({msgType: 'match', contentType: contentType, reqDetails: msg.reqDetails});
     }
 );

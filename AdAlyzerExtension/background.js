@@ -134,6 +134,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 				//Differentiat between Content Type the right way
 				
 				var type = match({tabId: tabId, requestId: requestId, resourceType: details.type, url: details.url});
+				console.log("returned type = " + type);
 				incrementTypeCount(tabId, entry, type);
 				
 

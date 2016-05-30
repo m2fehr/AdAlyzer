@@ -1,3 +1,5 @@
+var EasyList;
+var PrivacyList;
 
 
 function parse(listname, list) {
@@ -369,8 +371,9 @@ function parse(listname, list) {
 									temprules = temprules.split('|');
 									for(var z = 0; z<temprules.length; z++){
 										var domainAsRegex = temprules[z].trim();
-										domainAsRegex = domainAsRegex.replace(/\./, '\\.');
-										rule.DomainList.push(new RegExp(domainAsRegex));
+										//domainAsRegex = domainAsRegex.replace(/\./, '\\.');
+										//rule.DomainList.push(new RegExp(domainAsRegex));
+										rule.DomainList.push(domainAsRegex);
 									}
 								}
 								str.rule=tempstr;
@@ -452,11 +455,13 @@ function parse(listname, list) {
 		//speichern der parsedEasyList
 		switch(name){
 			case "easyList":
+				EasyList = parsedEasyList;
 				chrome.storage.local.set({'parsedEasyList': parsedEasyList}, function(){
 					console.log("parsedEasyList gespeichert!");
 				});
 				break;
 			case "easyPrivacy":
+				PrivacyList = parsedEasyList;
 				chrome.storage.local.set({'parsedPrivacyList': parsedEasyList}, function(){
 					console.log("parsedPrivacyList gespeichert!");
 				});
@@ -475,11 +480,11 @@ Um Message an Contentscript zu senden: chrome.tabs.sendMessage(reqDetails.tabId,
 
 function match(reqDetails) {
 	console.log("matching url: " + reqDetails.url);
-	chrome.storage.local.get('parsedPrivacyList', function(list){
+	
 
 		console.log("start test tracking list");
 		var tMatch = false;
-		var privacyList = list.parsedPrivacyList;
+		var privacyList = PrivacyList;
 		for(var j = 0; j < privacyList.length; j++){
 			var tempTRule = privacyList[j];
 			var tempTMatchRule = new RegExp(tempTRule.Matchrule);
@@ -503,39 +508,41 @@ function match(reqDetails) {
 		 */
 		if(tMatch){
 			console.log("return auf tracking-liste " + tMatch);
-			setMatchType(reqDetails, "tracker");
-			return;
+			//setMatchType(reqDetails, "tracker");
+			return "tracker";
 		}
 
-		chrome.storage.local.get('parsedEasyList', function(data){
+		
 			console.log("start test ad list");
 
-			var easyList = data.parsedEasyList;
+			var easyList = EasyList;
 			var hidingMatches = [];
 			for(var i = 0; i < easyList.length; i++ ){
 				var tempAdRule = easyList[i];
-				var tempMatchRule = new RegExp(tempAdRule.Matchrule);
-				if(tempAdRule.HidingRule == 0 && tempMatchRule.test(reqDetails.url)) {
-
-					if (tempAdRule.Options == 1) {
-						/*TODO:
-						 Testen der Optionen.
-						 */
-						if (!testMatchOptions(reqDetails, tempAdRule)) {
-							continue;
+				
+				if(tempAdRule.HidingRule == 0) { // && tempMatchRule.test(reqDetails.url)) {
+					var tempMatchRule = new RegExp(tempAdRule.Matchrule);
+					if (tempMatchRule.test(reqDetails.url)) {
+						if (tempAdRule.Options == 1) {
+							/*TODO:
+							 Testen der Optionen.
+							 */
+							if (!testMatchOptions(reqDetails, tempAdRule)) {
+								continue;
+							}
 						}
-					}
-					//regel matcht auf URL und kein eintrag der RuleList oder OptionList verhindert ein match --> ist ein Match.
-					/*TODO:
-					 soll nach einem Match weiter getestet werden?
-					 */
+						//regel matcht auf URL und kein eintrag der RuleList oder OptionList verhindert ein match --> ist ein Match.
+						/*TODO:
+						 soll nach einem Match weiter getestet werden?
+						 */
 
-					console.log("match auf Regel: " + tempMatchRule);
-					setMatchType(reqDetails, "ad");
-					/*TODO:
-					 soll nach einem Match weiter getestet werden?
-					 */
-					return;
+						console.log("match auf Regel: " + tempMatchRule);
+						//setMatchType(reqDetails, "ad");
+						/*TODO:
+						 soll nach einem Match weiter getestet werden?
+						 */
+						return "ad";
+					}
 
 				}else if(tempAdRule.HidingRule == 1){
 
@@ -580,12 +587,13 @@ function match(reqDetails) {
 			}
 			if(hidingMatches.length > 0){
 				console.log("Hiding Rules an ContentScript gesendet.");
-				chrome.tabs.sendMessage(reqDetails.tabId, {reqDetails: reqDetails, matches: hidingMatches}, function () {});
+				chrome.tabs.sendMessage(reqDetails.tabId, {reqDetails: reqDetails, matches: hidingMatches}, function (type) {console.log("cs.js: responsefunction, type: " + type)});
+				return "-";
 			}else{
-				setMatchType(reqDetails, "content");
+				//setMatchType(reqDetails, "content");
+				return "content";
 			}
-		});
-	});
+	
 }
 
 function testMatchOptions (reqDetails, mRule){
@@ -616,7 +624,7 @@ function testMatchOptions (reqDetails, mRule){
 
 				for(var domainCount = 0; domainCount < tempRule.DomainList.length; domainCount++){
 					var tempDomain = tempRule.DomainList[domainCount];
-					console.log(tempDomain);
+					//console.log(tempDomain);
 					if(tempDomain.indexOf("~") === -1){
 						//Domain ist NICHT invertiert. Url muss der domain entsprechen, damit tempDomainMatches auf true gesetzt werden kann.
 
