@@ -224,7 +224,7 @@ function setMatchType(reqDetails, matchType){
 }
 
 //This method is called when the Extension is activated
-window.addEventListener('load', getEasyList);
+window.addEventListener('load', getEasyListFromStorage);
 
 function getEasyList() {
 	console.log("getEasyList function called");

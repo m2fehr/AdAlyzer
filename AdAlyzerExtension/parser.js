@@ -470,6 +470,27 @@ function parse(listname, list) {
 		}
 }
 
+function getEasyListFromStorage() {
+	chrome.storage.local.get('parsedEasyList', function(data){
+		if (data) {
+			EasyList = data;
+			console.log("parsedEasyList geladen!");
+		}
+		else {
+			console.log("EasyList is not in storage");
+		}
+	});
+	chrome.storage.local.get('parsedPrivacyList', function(data){
+		if (data) {
+			PrivacyList = data;
+			console.log("parsedPrivacyList geladen!");
+		}
+		else {
+			console.log("PrivacyList is not in storage");
+		}
+	});
+}
+
 /*
 return type ad/content/tracker oder '-' wenn contentscript gebraucht wird
 parameter: 		reqDetails: {tabId, requestId, resourceType, url}
