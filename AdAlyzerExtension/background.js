@@ -204,7 +204,7 @@ chrome.runtime.onMessage.addListener(
 	        }
 		    break;
 		  case 'match':
-		  	console.log("bg.js: Match message received, type = " + matchType);
+		  	console.log("bg.js: Match message received, type = " + request.contentType);
 			setMatchType(request.reqDetails, request.contentType)
 		    break;
 		  default:
