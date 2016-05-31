@@ -356,7 +356,7 @@ function parse(listname, list) {
 							//falls die Regel invertiert ist (~), inverted auf 1 setzen.
 							if(tempstr.indexOf('~') != -1){
 								str.inverted = 1;
-								tempstr.replace('~','');
+								tempstr = tempstr.replace('~','');
 							}
 
 							//Testen ob RuleList.
@@ -378,13 +378,12 @@ function parse(listname, list) {
 								}
 								str.rule=tempstr;
 								rule.RuleList.push(str);
+								continue;
 							}
 
 							//es handelt sich nicht um eine Regeleinschränkung.
-							else{
-								str.rule=tempstr;
-								rule.OptionList.push(str);
-							}
+							str.rule=tempstr;
+							rule.OptionList.push(str);
 						}
 					}
 
