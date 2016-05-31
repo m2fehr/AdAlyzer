@@ -101,6 +101,10 @@ function incrementTypeCount(tabId, entry, type) {
 	}
 }
 
+function test() {
+	console.log("Loading Lists from Storage");
+}
+
 chrome.webRequest.onBeforeRequest.addListener(function(details) {
     	var tabId = details.tabId;
     	var requestId = details.requestId;
@@ -200,6 +204,7 @@ chrome.runtime.onMessage.addListener(
 	        }
 		    break;
 		  case 'match':
+		  	console.log("bg.js: Match message received, type = " + matchType);
 			setMatchType(request.reqDetails, request.contentType)
 		    break;
 		  default:
@@ -212,7 +217,7 @@ chrome.runtime.onMessage.addListener(
 TODO implement
  */
 function setMatchType(reqDetails, matchType){
-	console.log("bg.js: Match message received, type = " + matchType);
+	//console.log("bg.js: Match message received, type = " + matchType);
 	var reqEntry = getReqEntry(reqDetails.tabId, reqDetails.requestId);
 	if (reqEntry !== -1) {
 		reqEntry.contentType = matchType;
