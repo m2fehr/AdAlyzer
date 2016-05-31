@@ -192,7 +192,7 @@ function parse(listname, list) {
 							//unterteilen des strings in domains und matchrule.
 							var position = temp.indexOf("###");
 							var substrng = temp.slice(0, position);
-							temp = temp.slice(position+3);
+							temp = temp.slice(position + 2);
 
 							//erstellen eines Arrays mit den domains und hinzufügen zur domainlist.
 							substrng = substrng.split(",");
@@ -220,7 +220,7 @@ function parse(listname, list) {
 							//unterteilen von temp in domains und matchrule
 							var positionx = temp.indexOf("##.");
 							var substrngx = temp.slice(0, positionx);
-							temp = temp.slice(positionx + 3);
+							temp = temp.slice(positionx + 2);
 
 							//erstellen des arrays mit den domains und hinzufügen zur domainlist
 							substrngx = substrngx.split(",");
@@ -280,13 +280,14 @@ function parse(listname, list) {
 
 							//unterteilen in domains und matchrule
 							var positionexep = temp.indexOf("#@##");
-							var substrngexep = temp.slice(positionexep + 4);
-							temp = temp.slice(0, positionexep + 4);
+							var substrngexep = temp.slice(0, positionexep);
+							temp = temp.slice(positionexep + 3);
 
 							//erstellen des arrays mit den domains und hinzufügen zur domainlist
 							substrngexep = substrngexep.split(",");
 							for(var countx = 0; countx<substrngexep.length; countx++){
 								rule.DomainList.push(substrngexep[countx]);
+								console.log("domain: " + substrngexep[countx]);
 							}
 
 							//id als matchrule speichern
@@ -294,6 +295,7 @@ function parse(listname, list) {
 
 							//verarbeitung des Elementes abgeschlossen.
 							parsedEasyList.push(rule);
+							console.log("rule: " + rule.Matchrule);
 							continue;
 						}
 
@@ -306,8 +308,8 @@ function parse(listname, list) {
 
 							//unterteilen in domains und matchrule
 							var positionexep2 = temp.indexOf("#@#.");
-							var substrngexep2 = temp.slice(positionexep2 + 4);
-							temp = temp.slice(0, positionexep2 + 4);
+							var substrngexep2 = temp.slice(0, positionexep2);
+							temp = temp.slice(positionexep2 + 3);
 
 							//erstellen des arrays mit den domains und hinzufügen zur domainlist
 							substrngexep2 = substrngexep2.split(",");
@@ -608,7 +610,7 @@ function match(reqDetails) {
 			if(hidingMatches.length > 0){
 				console.log("Hiding Rules an ContentScript gesendet.");
 				//test();
-				chrome.tabs.sendMessage(reqDetails.tabId, {reqDetails: reqDetails/*, matches: hidingMatches*/}, function () {});
+				chrome.tabs.sendMessage(reqDetails.tabId, {reqDetails: reqDetails, matches: hidingMatches}, function () {});
 				return "-";
 			}else{
 				//setMatchType(reqDetails, "content");
