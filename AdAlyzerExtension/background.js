@@ -141,13 +141,13 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 
 				//Differentiat between Content Type the right way
 				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: '-', resourceType: details.type});
-				
+
 				var type = match({tabId: tabId, requestId: requestId, resourceType: details.type, url: details.url});
 				console.log("returned type = " + type);
 				if (type !== "-")
 					setMatchType({tabId: tabId, requestId: requestId}, type);
 				//incrementTypeCount(tabId, entry, type);
-				
+
 
 				
 				//entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type, resourceType: details.type});
