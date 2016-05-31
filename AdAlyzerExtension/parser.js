@@ -376,9 +376,11 @@ function parse(listname, list) {
 										rule.DomainList.push(domainAsRegex);
 									}
 								}
-								str.rule=tempstr;
-								rule.RuleList.push(str);
-								continue;
+								else{
+									str.rule=tempstr;
+									rule.OptionList.push(str);
+								}
+								//continue;
 							}
 
 							//es handelt sich nicht um eine Regeleinschränkung.
@@ -474,7 +476,7 @@ function getEasyListFromStorage() {
 	chrome.storage.local.get('parsedEasyList', function(data){
 		if (data) {
 			EasyList = data;
-			console.log("parsedEasyList geladen!");
+			console.log("parsedEasyList geladen!, length: " + data.length);
 		}
 		else {
 			console.log("EasyList is not in storage");
