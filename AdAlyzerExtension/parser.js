@@ -175,7 +175,7 @@ function parse(listname, list) {
 							}
 
 							else{
-								alert("unknown rule option: " + temp);
+								console.log("unknown rule option: " + temp);
 							}
 						}
 
@@ -474,7 +474,7 @@ function parse(listname, list) {
 				});
 				break;
 			default:
-				alert(name + " - sollte easyList oder easyPrivacy sein...!?!");
+				console.log(name + " - sollte easyList oder easyPrivacy sein...!?!");
 		}
 }
 
@@ -507,10 +507,10 @@ Um Message an Contentscript zu senden: chrome.tabs.sendMessage(reqDetails.tabId,
 */
 
 function match(reqDetails) {
-	console.log("matching url: " + reqDetails.url);
+	//console.log("matching url: " + reqDetails.url);
 	
 
-		console.log("start test tracking list");
+		//console.log("start test tracking list");
 		var tMatch = false;
 		var privacyList = PrivacyList;
 		for(var j = 0; j < privacyList.length; j++){
@@ -541,7 +541,7 @@ function match(reqDetails) {
 		}
 
 		
-			console.log("start test ad list");
+			//console.log("start test ad list");
 
 			var easyList = EasyList;
 			var hidingMatches = [];
@@ -620,7 +620,7 @@ function match(reqDetails) {
 				}
 			}
 			if(hidingMatches.length > 0){
-				console.log("Hiding Rules an ContentScript gesendet.");
+				//console.log("Hiding Rules an ContentScript gesendet.");
 				//test();
 				chrome.tabs.sendMessage(reqDetails.tabId, {reqDetails: reqDetails, matches: hidingMatches}, function () {});
 				return "-";
@@ -698,7 +698,7 @@ function testMatchOptions (reqDetails, mRule){
 				//diese Regel hat keinen Einfluss auf unsere Anwendung und wird daher ignoriert.
 				break;
 			default:
-				alert("unknown rule in RuleList" + tempRule.RuleList[ruleCounter].rule);
+				console.log("unknown rule in RuleList" + tempRule.RuleList[ruleCounter].rule);
 		}
 
 		//falls ein Match nicht mehr Möglich ist, kann die for-loop unterbrochen werden.
@@ -835,7 +835,7 @@ function testMatchOptions (reqDetails, mRule){
 				}
 				break;
 			default:
-				alert("unbekannte Regel" + tempRule.OptionList[optionCounter].rule);
+				console.log("unbekannte Regel" + tempRule.OptionList[optionCounter].rule);
 		}
 
 		if(noMatchPossible){

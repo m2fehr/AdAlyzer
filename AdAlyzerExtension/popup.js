@@ -65,7 +65,6 @@ window.addEventListener('load', function(evt) {
     var contentPercent = document.getElementById('contentPercent');
     var DOMTime = document.getElementById('DOMTime');
     var loadTime = document.getElementById('loadTime');
-    var dnsTime = document.getElementById('dnsTime');
     var pageRating = document.getElementById('pageRating');
     // Second Tab
     var adsRating = document.getElementById('adsRating');
@@ -117,7 +116,6 @@ window.addEventListener('load', function(evt) {
         contentPercent.innerHTML = ((100 / reqMapSize) * currentTabEntry.elements.content).toFixed(0) + "%";
         DOMTime.innerHTML = currentTabEntry.plt.dom + "s";
         loadTime.innerHTML = currentTabEntry.plt.load + "s";
-        dnsTime.innerHTML = currentTabEntry.plt.dns + "s";
         pageRating.innerHTML = totalRating.textContent;
         
         // Third Tab

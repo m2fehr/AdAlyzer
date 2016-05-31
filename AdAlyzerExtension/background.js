@@ -29,7 +29,7 @@ tabs.forEach(function(value, key, map) {
 tabEntry = function () {
     return {
         reqMap: new Map(),
-        plt: {dom: 0, load: 0, dns: 0},
+        plt: {dom: 0, load: 0},
         elements: {ads: 0, tracker: 0, content: 0},
         rating: {total: '?', plt: '?', ads: '?', tracking: '?'}
     }
@@ -39,7 +39,6 @@ function resetTabEntry(entry) { //vlt effizienter gleich neues objekt zu erzeuge
 	entry.reqMap.clear();
 	entry.plt.dom = 0;
 	entry.plt.load = 0;
-	entry.plt.dns = 0;
 	entry.elements.ads = 0;
 	entry.elements.tracker = 0;
 	entry.elements.content = 0;
@@ -143,7 +142,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: '-', resourceType: details.type});
 
 				var type = match({tabId: tabId, requestId: requestId, resourceType: details.type, url: details.url});
-				console.log("returned type = " + type);
+				//console.log("returned type = " + type);
 				if (type !== "-")
 					setMatchType({tabId: tabId, requestId: requestId}, type);
 				//incrementTypeCount(tabId, entry, type);
@@ -200,7 +199,6 @@ chrome.runtime.onMessage.addListener(
 	        if(typeof entry !== "undefined") {
 	        	entry.plt.dom = request.DOMTime;
 	        	entry.plt.load = request.loadTime;
-	        	entry.plt.dns = request.dnsTime;
 	        }
 		    break;
 		  case 'match':
@@ -229,7 +227,7 @@ function setMatchType(reqDetails, matchType){
 }
 
 //This method is called when the Extension is activated
-window.addEventListener('load', getEasyListFromStorage);
+window.addEventListener('load', getEasyList);
 
 function getEasyList() {
 	console.log("getEasyList function called");
