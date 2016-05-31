@@ -287,7 +287,7 @@ function parse(listname, list) {
 							substrngexep = substrngexep.split(",");
 							for(var countx = 0; countx<substrngexep.length; countx++){
 								rule.DomainList.push(substrngexep[countx]);
-								console.log("domain: " + substrngexep[countx]);
+								//console.log("domain: " + substrngexep[countx]);
 							}
 
 							//id als matchrule speichern
@@ -295,7 +295,7 @@ function parse(listname, list) {
 
 							//verarbeitung des Elementes abgeschlossen.
 							parsedEasyList.push(rule);
-							console.log("rule: " + rule.Matchrule);
+							//console.log("rule: " + rule.Matchrule);
 							continue;
 						}
 
@@ -352,6 +352,7 @@ function parse(listname, list) {
 						//Speichern der Regeln
 						rules = rules.split(',');
 						for (var k = 0; k < rules.length; k++) {
+							//console.log('\n'+"regel: " + rules[k]);
 							var str = {rule:"", inverted: 0};
 							var tempstr = rules[k].trim();
 
@@ -364,6 +365,7 @@ function parse(listname, list) {
 							//Testen ob RuleList.
 							if(tempstr.indexOf("domain") != -1 || tempstr.indexOf("third-party") != -1 || tempstr.indexOf("sitekey") != -1 || tempstr.indexOf("match-case") != -1 ||
 								tempstr.indexOf("collapse") != -1 || tempstr.indexOf("donottrack") != -1 ){
+								//console.log("rule-list: " + tempstr + '\n');
 
 								//Fall "Domain="-Regel, speichern aller spezifizierten Domains in der DomainList.
 								if(tempstr.indexOf("domain") != -1){
@@ -378,16 +380,18 @@ function parse(listname, list) {
 										rule.DomainList.push(domainAsRegex);
 									}
 								}
-								else{
-									str.rule=tempstr;
-									rule.OptionList.push(str);
-								}
-								//continue;
-							}
 
-							//es handelt sich nicht um eine Regeleinschränkung.
-							str.rule=tempstr;
-							rule.OptionList.push(str);
+								str.rule=tempstr;
+								rule.RuleList.push(str);
+
+								//continue;
+							}else {
+
+								//es handelt sich nicht um eine Regeleinschränkung.
+								//console.log("option-list: " + tempstr);
+								str.rule = tempstr;
+								rule.OptionList.push(str);
+							}
 						}
 					}
 
@@ -580,11 +584,17 @@ function match(reqDetails) {
 					if(tempAdRule.DomainList.length > 0){
 
 						//
-						noHidingMatch = false;
+						mHDomain = false;
 						for(var hDCounter = 0; hDCounter < tempAdRule.DomainList.length; hDCounter++){
 							var hDTemp = tempAdRule.DomainList[hDCounter];
-							if(reqDetails.url.indexOf(hDTemp.rule) != -1){
-								if(hDTemp.inverted == 0){
+							var inverted = 0;
+							//console.log(hDTemp);
+							if(hDTemp.indexOf('~') != -1){
+								hDTemp = hDTemp.replace('~','');
+								inverted = 1;
+							}
+							if(reqDetails.url.indexOf(hDTemp) != -1){
+								if(inverted == 0){
 									//domain und url matchen und regel ist nicht invertiert --> match möglich.
 									mHDomain = true;
 								}else{
