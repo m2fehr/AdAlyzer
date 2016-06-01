@@ -505,13 +505,15 @@ function matchList(ruleList, reqDetails) {
 				 TODO: Bearbeiten der Optionen.
 				 */
 				if (testMatchOptions(reqDetails, tempTRule)) {
-					return tempTRule;
+					return true;
 				}
 			}
+			else {
+				return true;
+			}
 		}
-		return tempTRule;
 	}
-	return null;
+	return false;
 }
 
 /*
@@ -522,16 +524,16 @@ Um Message an Contentscript zu senden: chrome.tabs.sendMessage(reqDetails.tabId,
 */
 
 function match(reqDetails) {		
-	if (matchList(EasyListMatchCache, reqDetails) !== null) {
+	/*if (matchList(EasyListMatchCache, reqDetails)) {
 		console.log("EasyList MatchCache matched!");
 		return "ad";
 	}
-	if (matchList(PrivacyListMatchCache, reqDetails) !== null) {
+	if (matchList(PrivacyListMatchCache, reqDetails)) {
 		console.log("EasyList MatchCache matched!");
 		return "tracker";
 	}
 	var matchingRule = matchList(EasyList, reqDetails);
-	if (matchingRule !== null) {
+	if (matchingRule) {
 		if (EasyListMatchCache.length > MAX_CACHE_SIZE) {
 			EasyListMatchCache.pop();
 		}
@@ -539,13 +541,24 @@ function match(reqDetails) {
 		return "ad";
 	}
 	matchingRule = matchList(PrivacyList, reqDetails);
-	if (matchingRule !== null) {
+	if (matchingRule) {
 		if (EasyListMatchCache.length > MAX_CACHE_SIZE) {
 			EasyListMatchCache.pop();
 		}
 		EasyListMatchCache.unshift(matchingRule);
 		return "tracker";
 	}
+	*/
+
+	if (matchList(EasyList, reqDetails)) {
+		//console.log("EasyList MatchCache matched!");
+		return "ad";
+	}
+	if (matchList(PrivacyList, reqDetails)) {
+		//console.log("EasyList MatchCache matched!");
+		return "tracker";
+	}
+
 	return "content";
 }
 
