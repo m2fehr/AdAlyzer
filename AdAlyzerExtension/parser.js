@@ -500,7 +500,8 @@ var getDomain = function (href){
 checks reqDetails against ruleList, returns the Rule on positive match or null otherwise
 */
 function matchList(ruleList, reqDetails) {
-	for (var tempTRule in ruleList) {
+	for (var j = 0; j < ruleList.length; j++) {
+		var tempTRule = ruleList[j];
 		var tempTMatchRule = new RegExp(tempTRule.Matchrule);
 		if (tempTMatchRule.test(reqDetails.url)) {
 			if (tempTRule.Options == 1) {
@@ -525,7 +526,31 @@ Um Message an Contentscript zu senden: chrome.tabs.sendMessage(reqDetails.tabId,
 */
 
 function match(reqDetails) {		
-	matchList();
+	if (matchList(EasyListMatchCache, reqDetails) !== null) {
+		console.log("EasyList MatchCache matched!");
+		return "ad";
+	}
+	if (matchList(PrivacyListMatchCache, reqDetails) !== null) {
+		console.log("EasyList MatchCache matched!");
+		return "tracker";
+	}
+	var matchingRule = matchList(EasyList, reqDetails);
+	if (matchingRule !== null) {
+		if (EasyListMatchCache.length > MAX_CACHE_SIZE) {
+			EasyListMatchCache.pop();
+		}
+		EasyListMatchCache.unshift(matchingRule);
+		return "ad";
+	}
+	matchingRule = matchList(PrivacyList, reqDetails);
+	if (matchingRule !== null) {
+		if (EasyListMatchCache.length > MAX_CACHE_SIZE) {
+			EasyListMatchCache.pop();
+		}
+		EasyListMatchCache.unshift(matchingRule);
+		return "tracker";
+	}
+	return "content";
 }
 
 function testMatchOptions (reqDetails, mRule){
