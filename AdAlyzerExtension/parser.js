@@ -1,6 +1,7 @@
 var MAX_CACHE_SIZE = 100;
 
 var EasyList;
+var HidingList;
 var PrivacyList;
 var EasyListMatchCache = [];
 var PrivacyListMatchCache = [];
@@ -97,7 +98,15 @@ function parse(listname, list) {
 						}
 					}
 
-					//Test auf Hiding-Rule (###, ##, #@##, #@#)
+					//Test auf Hiding-Rule (###, ##., ##, #@##, #@#., #@#)
+					/*
+					TODO:
+					Aktuell wird das Content Script nicht verwendet. Daher werden alle Hiding Regeln in eine separate Liste gespeichert. Diese Liste wird aktuell nicht verwendet.
+					Im Content Script ist eine mögliche Implementation bereits vorhanden jedoch Auskommentiert.
+					WICHTIG:
+					Je nach dem, wie im Content Script das html bzw. css durchsucht wird, müssen hier allenfalls die regeln unterschiedlich vorbereitet werden.
+					Aktuell wierden sie so geparst, dass sie für "document.querySelector("regel")" geeignet sind.
+					 */
 					var hpos = temp.indexOf("#");
 
 					//Testen, ob # in der Regel vorkommt. Wenn nicht, kann es sich nicht um eine HideRule handeln und muss hier nicht weiter bearbeitet werden.
@@ -111,19 +120,12 @@ function parse(listname, list) {
 
 								//Löschen der ###
 								temp.slice(3);
-								/*
-								TODO: Test auf > und + nach ID
-								Es gibt bei ### zwei zusätzliche Optionen, welche getestet werden müssen.
-								1. (Beispiel: ###advert > .link) advert stellt dabei die ID dar, link eine Class. In diesem Fall soll die Regel auf Elemente mit der angegebenen Klasse (hier "link") matchen, welche von Elementen mit der angegebenen ID (hier advert) umgeben sind.
-								2. (Beispiel: ###advert + .link) advert ist wieder die ID, link eine Klasse. Die Regel soll auf Elemente der angegebenen Klasse (hier "link") matchen, welchen unmittelbar ein Element mit der angegebenen ID (hier advert) vorangeht.
-								 Aktuell werden diese spezialregeln ignoriert und wie normale ids unbehandelt hinzugefügt.
-								 */
 
 								//id als Matchrule zu rule hinzufügen.
 								rule.Matchrule = temp;
 
 								//verarbeitung des Elementes abgeschlossen.
-								parsedEasyList.push(rule);
+								parsedHidingList.push(rule);
 								continue;
 							}
 							//test ob ##. (class)
@@ -138,7 +140,7 @@ function parse(listname, list) {
 								rule.Matchrule = temp;
 
 								//verarbeitung des Elementes abgeschlossen.
-								parsedEasyList.push(rule);
+								parsedHidingList.push(rule);
 								continue;
 							}
 
@@ -161,7 +163,7 @@ function parse(listname, list) {
 								 */
 
 								//verarbeitung des Elementes abgeschlossen.
-								parsedEasyList.push(rule);
+								parsedHidingList.push(rule);
 								continue;
 							}
 
@@ -195,7 +197,7 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							parsedEasyList.push(rule);
+							parsedHidingList.push(rule);
 							continue;
 						}
 
@@ -223,7 +225,7 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							parsedEasyList.push(rule);
+							parsedHidingList.push(rule);
 							continue;
 						}
 
@@ -249,14 +251,8 @@ function parse(listname, list) {
 							//html-tag info als matchrule speichern
 							rule.Matchrule = temp;
 
-							/*
-							 TODO:
-							 temp enthält (nach entfernen der ##) noch den html-tag (falls einer vorhanden) sowie Klammern und allenfalls Sonderzeichen (Bsp: div[id^="div-adtech-ad-"]) muss bereinigt bzw. zu regex umgeformt werden.
-							 allenfalls kann der html-tag auch als HidingOption hinzugefügt werden.
-							 */
-
 							//verarbeitung des Elementes abgeschlossen.
-							parsedEasyList.push(rule);
+							parsedHidingList.push(rule);
 							continue;
 						}
 
@@ -285,7 +281,7 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							parsedEasyList.push(rule);
+							parsedHidingList.push(rule);
 							//console.log("rule: " + rule.Matchrule);
 							continue;
 						}
@@ -312,7 +308,7 @@ function parse(listname, list) {
 							rule.Matchrule = temp;
 
 							//verarbeitung des Elementes abgeschlossen.
-							parsedEasyList.push(rule);
+							parsedHidingList.push(rule);
 							continue;
 						}
 
@@ -321,11 +317,6 @@ function parse(listname, list) {
 							//# könnte auch teil der URL etc. sein.
 							//alert("unbekannte regel: "+temp);
 						}
-
-						/*
-						 TODO:
-						 Auch hier scheint es Spezialregeln mit CSS selektoren zu geben (infowars.com##.entry-content > div + div + * + [class]) Auf der Seite von AdBlockPlus wird dies jedoch nicht klar erwähnt...
-						 */
 					}
 
 
@@ -449,13 +440,18 @@ function parse(listname, list) {
 
 				console.log("parsing finished");
 				console.log(parsedEasyList.length);
+				console.log(parsedHidingList.length);
 
 		//speichern der parsedEasyList
 		switch(name){
 			case "easyList":
 				EasyList = parsedEasyList;
+				HidingList = parsedHidingList;
 				chrome.storage.local.set({'parsedEasyList': parsedEasyList}, function(){
 					console.log("parsedEasyList gespeichert!");
+				});
+				chrome.storage.local.set({'parsedHidingList': parsedHidingList}, function(){
+					console.log("parsedHidingList gespeichert!");
 				});
 				break;
 			case "easyPrivacy":
