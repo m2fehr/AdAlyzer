@@ -17,24 +17,12 @@ function parse(listname, list) {
 
 	console.log("name der Liste: " + name);
 
-	//Hier wird die easyList als Array gespeichert.
-	//var easyListAsArray;
-
-		//In diesem Array wird die geparste EasyList gespeichert. 	 Dabei stellt jedes Element des Arrays einen Eintrag der EasyList dar.
+		//In diesem Array werden die Blockierregeln der geparsten EasyList gespeichert. Dabei stellt jedes Element des Arrays einen Eintrag der EasyList dar.
 		var parsedEasyList = [];
 
-	//rawFile.open("GET", link, true);
-	//rawFile.onreadystatechange = function ()
-	//{
-	//	if(rawFile.readyState === 4)
-	//	{
-	//		if(rawFile.status === 200 || rawFile.status == 0)
-	//		{
-	//			var allText = rawFile.responseText;
-	//			console.log(allText.length);
-	//			alert(allText);
+		// in diesem Array werden die Hiding Rules der geparsten EasyList gespeichert.
+		var parsedHidingList = [];
 
-				//easyListAsArray = allText.split('\n');
 				console.log(easyListAsArray.length);
 
 				/*
@@ -47,7 +35,6 @@ function parse(listname, list) {
 				//	"@@.com/banners, @@||ykhandler.com/adframe.js, @@.com/*.js|$domain=openload.co, @@/adcode.js$domain=cityam.com|techworld.com, ! Game Empire Enterprises, el33tonline.com###AdD";
 				//easyListAsArray = teststring.split(', ');
 
-				//alert(easyListAsArray);
 				console.log(easyListAsArray);
 
 				var whitelist = 0;
