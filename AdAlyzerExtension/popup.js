@@ -63,6 +63,7 @@ window.addEventListener('load', function(evt) {
     var adsPercent = document.getElementById('adsPercent');
     var trackerPercent = document.getElementById('trackerPercent');
     var contentPercent = document.getElementById('contentPercent');
+    var adsRealTotal = document.getElementById('adsRealTotal');
     var DOMTime = document.getElementById('DOMTime');
     var loadTime = document.getElementById('loadTime');
     var pageRating = document.getElementById('pageRating');
@@ -117,6 +118,7 @@ window.addEventListener('load', function(evt) {
         DOMTime.innerHTML = currentTabEntry.plt.dom + "s";
         loadTime.innerHTML = currentTabEntry.plt.load + "s";
         pageRating.innerHTML = totalRating.textContent;
+        adsRealTotal.innerHTML = currentTabEntry.adFrames.length;
         
         // Third Tab
         while (tableBody.firstChild) {
