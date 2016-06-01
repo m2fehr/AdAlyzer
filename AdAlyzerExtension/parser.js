@@ -513,65 +513,19 @@ var getDomain = function (href){
 checks reqDetails against ruleList, returns the Rule on positive match or null otherwise
 */
 function matchList(ruleList, reqDetails) {
-	for (tempTRule in ruleList) {
+	for (var tempTRule in ruleList) {
 		var tempTMatchRule = new RegExp(tempTRule.Matchrule);
-		if(tempTMatchRule.test(reqDetails.url)){
-			if(tempTRule.Options == 1){
+		if (tempTMatchRule.test(reqDetails.url)) {
+			if (tempTRule.Options == 1) {
 				/*
 				 TODO: Bearbeiten der Optionen.
 				 */
-				if(testMatchOptions(reqDetails, tempTRule)){
+				if (testMatchOptions(reqDetails, tempTRule)) {
 					return tempTRule;
 				}
 			}
-<<<<<<< Updated upstream
 		}
-
-		/*
-		 TODO: Kein Match: Ad, Content?
-		 */
-		if(tMatch){
-			console.log("return auf tracking-liste " + tMatch);
-			//setMatchType(reqDetails, "tracker");
-			return "tracker";
-		}
-
-		
-			//console.log("start test ad list");
-
-			var easyList = EasyList;
-			var hidingMatches = [];
-			for(var i = 0; i < easyList.length; i++ ){
-				var tempAdRule = easyList[i];
-				
-				if(tempAdRule.HidingRule == 0) { // && tempMatchRule.test(reqDetails.url)) {
-					var tempMatchRule = new RegExp(tempAdRule.Matchrule);
-					if (tempMatchRule.test(reqDetails.url)) {
-						if (tempAdRule.Options == 1) {
-
-							 //Testen der Optionen.
-							if (!testMatchOptions(reqDetails, tempAdRule)) {
-								continue;
-							}
-						}
-						//regel matcht auf URL und kein eintrag der RuleList oder OptionList verhindert ein match --> ist ein Match.
-						/*TODO:
-						 soll nach einem Match weiter getestet werden?
-						 */
-
-						console.log("match auf Regel: " + tempMatchRule);
-						return "ad";
-					}
-
-				}
-				else
-					return "content";
-=======
-			else {
-				return tempTRule;
->>>>>>> Stashed changes
-			}
-		}
+		return tempTRule;
 	}
 	return null;
 }
