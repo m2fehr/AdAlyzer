@@ -1,9 +1,5 @@
-var MAX_CACHE_SIZE = 100;
-
 var EasyList;
 var PrivacyList;
-var EasyListMatchCache = [];
-var PrivacyListMatchCache = [];
 
 
 function parse(listname, list) {
@@ -510,21 +506,35 @@ var getDomain = function (href){
 };
 
 /*
-checks reqDetails against ruleList, returns the Rule on positive match or null otherwise
+return type ad/content/tracker oder '-' wenn contentscript gebraucht wird
+parameter: 		reqDetails: {tabId, requestId, resourceType, url}
+
+Um Message an Contentscript zu senden: chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response) {});
 */
-function matchList(ruleList, reqDetails) {
-	for (tempTRule in ruleList) {
-		var tempTMatchRule = new RegExp(tempTRule.Matchrule);
-		if(tempTMatchRule.test(reqDetails.url)){
-			if(tempTRule.Options == 1){
-				/*
-				 TODO: Bearbeiten der Optionen.
-				 */
-				if(testMatchOptions(reqDetails, tempTRule)){
-					return tempTRule;
+
+function match(reqDetails) {
+	//console.log("matching url: " + reqDetails.url);
+	
+
+		//console.log("start test tracking list");
+		var tMatch = false;
+		var privacyList = PrivacyList;
+		for(var j = 0; j < privacyList.length; j++){
+			var tempTRule = privacyList[j];
+			var tempTMatchRule = new RegExp(tempTRule.Matchrule);
+			if(tempTMatchRule.test(reqDetails.url)){
+				console.log("match auf tracking-list " + reqDetails.url + "   " + tempTMatchRule);
+				if(tempTRule.Options == 1){
+					/*
+					 TODO: Bearbeiten der Optionen.
+					 */
+					if(!testMatchOptions(reqDetails, tempTRule)){
+						continue;
+					}
 				}
+
+				tMatch = true;
 			}
-<<<<<<< Updated upstream
 		}
 
 		/*
@@ -566,25 +576,68 @@ function matchList(ruleList, reqDetails) {
 				}
 				else
 					return "content";
-=======
-			else {
-				return tempTRule;
->>>>>>> Stashed changes
 			}
-		}
-	}
-	return null;
-}
 
-/*
-return type ad/content/tracker oder '-' wenn contentscript gebraucht wird
-parameter: 		reqDetails: {tabId, requestId, resourceType, url}
+				/*else if(tempAdRule.HidingRule == 1){
 
-Um Message an Contentscript zu senden: chrome.tabs.sendMessage(reqDetails.tabId, reqDetails, function(response) {});
-*/
+					//variable wird auf true gesetzt, falls z.B. die DomainList der Regel ein Match ausschliesst.
+					var noHidingMatch = false;
 
-function match(reqDetails) {		
-	matchList();
+					//variable wird auf true gesetzt, falls eine Domain aus der DomainList der url entspricht.
+					var mHDomain = true;
+
+					//Testen ob Regel auf gewisse Domains eingeschränkt ist.
+					if(tempAdRule.DomainList.length > 0){
+
+						//
+						mHDomain = false;
+						for(var hDCounter = 0; hDCounter < tempAdRule.DomainList.length; hDCounter++){
+							var hDTemp = tempAdRule.DomainList[hDCounter];
+							var inverted = 0;
+							//console.log(hDTemp);
+							if(hDTemp.indexOf('~') != -1){
+								hDTemp = hDTemp.replace('~','');
+								inverted = 1;
+							}
+							if(reqDetails.url.indexOf(hDTemp) != -1){
+								if(inverted == 0){
+									//domain und url matchen und regel ist nicht invertiert --> match möglich.
+									mHDomain = true;
+								}else{
+									//domain und url matchen aber regel ist invertiert --> match ist unmöglich.
+									noHidingMatch = true;
+									break;
+								}
+							}
+
+						}
+						//falls regel ein Match ausschliesst, kann for-loop abgebrochen werden.
+						if(noHidingMatch){
+							mHDomain = false;
+							continue;
+						}
+					}
+
+					if(mHDomain){
+						//var hidingMatchesEntry = {tabId: reqDetails.tabId, reqDetails: reqDetails, rule: tempAdRule};
+						hidingMatches.push(tempAdRule);
+						//console.log("Hiding Rule.   URL: " + reqDetails.url + ", Regel: " + tempMatchRule + " Regel-Nr. " + i);
+					}
+				}
+			}
+			
+			if(hidingMatches.length > 0){
+				//console.log("Hiding Rules an ContentScript gesendet.");
+				//test();
+				chrome.tabs.sendMessage(reqDetails.tabId, {reqDetails: reqDetails, matches: hidingMatches}, function () {});
+				return "-";
+			}else{
+				//setMatchType(reqDetails, "content");
+				return "content";
+			}
+			*/
+			
+	
 }
 
 function testMatchOptions (reqDetails, mRule){

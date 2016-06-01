@@ -32,8 +32,7 @@ tabEntry = function () {
         plt: {dom: 0, load: 0},
         elements: {ads: 0, tracker: 0, content: 0},
         rating: {total: '?', plt: '?', ads: '?', tracking: '?'},
-       	originUrl: '',
-       	adFrames: []
+       	originUrl: ''
     }
 };
 
@@ -49,8 +48,6 @@ function resetTabEntry(entry) { //vlt effizienter gleich neues objekt zu erzeuge
 	entry.rating.ads = '';
 	entry.rating.tracking = '';
 	entry.originUrl = '';
-	entry.adFrames = [];
-
 };
 
 
@@ -120,7 +117,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 			
 			if(details.type === "main_frame") {
 				entry.originUrl = details.url;
-				console.log("originUrl = " + entry.originUrl);
+				console.log("oringUrl = " + entry.originUrl);
 			}
 
 			var reqEntry = entry.reqMap.get(requestId);
@@ -155,11 +152,6 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 
 				
 				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type, resourceType: details.type, frameId: details.frameId});
-
-				var requestingFrameId = (details.type === 'sub_frame' ? details.parentFrameId : details.frameId);
-				if((type === "ad") && (entry.adFrames.indexOf(requestingFrameId) === -1)) {
-					entry.adFrames.push(requestingFrameId);
-				}
 			}
 			else {
 				console.log("onBeforeRequest: requestId already in map");
