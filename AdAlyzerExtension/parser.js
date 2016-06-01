@@ -499,6 +499,12 @@ function getEasyListFromStorage() {
 	});
 }
 
+var getDomain = function (href){
+	var x = document.createElement("a");
+	x.href = href;
+	return x;
+};
+
 /*
 return type ad/content/tracker oder '-' wenn contentscript gebraucht wird
 parameter: 		reqDetails: {tabId, requestId, resourceType, url}
@@ -552,9 +558,8 @@ function match(reqDetails) {
 					var tempMatchRule = new RegExp(tempAdRule.Matchrule);
 					if (tempMatchRule.test(reqDetails.url)) {
 						if (tempAdRule.Options == 1) {
-							/*TODO:
-							 Testen der Optionen.
-							 */
+
+							 //Testen der Optionen.
 							if (!testMatchOptions(reqDetails, tempAdRule)) {
 								continue;
 							}
@@ -565,10 +570,6 @@ function match(reqDetails) {
 						 */
 
 						console.log("match auf Regel: " + tempMatchRule);
-						//setMatchType(reqDetails, "ad");
-						/*TODO:
-						 soll nach einem Match weiter getestet werden?
-						 */
 						return "ad";
 					}
 
@@ -644,14 +645,26 @@ function testMatchOptions (reqDetails, mRule){
 	for(var ruleCounter = 0; ruleCounter < tempRule.RuleList.length; ruleCounter++){
 		switch(tempRule.RuleList[ruleCounter].rule){
 			case "third-party":
-				if(tempRule.RuleList.inverted == 0){
-					//regel ist nicht invertiert. Wird nur auf third-party seiten angewendet. Domain der url darf nicht mit der url der eigentlich aufgerufenen seite übereinstimmen.
-					//(bsp: aufruf: 20min.ch, request geht auf ad.com --> match. 20min.ch, request auf 20min.ch --> kein match.
+				if(reqDetails.originUrl){
+					var adDomain = getDomain(reqDetails.url);
+					adDomain = adDomain.hostname;
+
+					if(tempRule.RuleList.inverted == 0){
+						//regel ist nicht invertiert. Wird nur auf third-party seiten angewendet. Domain der url darf nicht mit der url der eigentlich aufgerufenen seite übereinstimmen.
+						//(bsp: aufruf: 20min.ch, request geht auf ad.com --> match. 20min.ch, request auf 20min.ch --> kein match.
+						if(reqDetails.originUrl.includes(adDomain)){
+							noMatch = true;
+						}
+					}
+					else{
+						//regel ist invertiert. Wird nur auf die eigentlich aufgerufene Seite angewendet.
+						//ggt. von oben.
+						if(!reqDetails.originUrl.includes(adDomain)){
+							noMatch = true;
+						}
+					}
 				}
-				else{
-					//regel ist invertiert. Wird nur auf die eigentlich aufgerufene Seite angewendet.
-					//ggt. von oben.
-				}
+
 				break;
 			case "domain":
 				//variable tempDomainMatches wird auf true gesetzt, falls die URL die bedingung der regel erfüllt.

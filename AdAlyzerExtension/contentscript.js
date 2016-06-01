@@ -30,15 +30,15 @@ chrome.runtime.sendMessage({msgType, contentType, reqDetails}) mit msgType = 'ma
 chrome.runtime.onMessage.addListener(
     function(msg, sender, sendResponse) {
         var contentType = "content";
-        console.log("content Script recived: " + msg.matches.length);
+        //console.log("content Script recived: " + msg.matches.length);
         for(var i = 0; i < msg.matches.length; i++){
             var selector = msg.matches[i];
             //console.log(selector.Matchrule);
             var x = document.querySelector(selector.Matchrule);
             if(x){
                 contentType = "ad";
-                console.log("match in ContentScript");
-                console.log(selector.Matchrule + "         " + x);
+               // console.log("match in ContentScript");
+               // console.log(selector.Matchrule + "         " + x);
                 break;
             }
         }
