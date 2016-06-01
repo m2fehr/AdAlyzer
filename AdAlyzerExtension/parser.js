@@ -778,6 +778,11 @@ function testMatchOptions (reqDetails, mRule){
 					}
 				}
 				break;
+			case "popup":
+				/*
+				TODO: Implement!
+				 */
+				break;
 			default:
 				console.log("unbekannte Regel" + tempRule.OptionList[optionCounter].rule);
 		}
