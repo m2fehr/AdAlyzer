@@ -31,7 +31,8 @@ tabEntry = function () {
         reqMap: new Map(),
         plt: {dom: 0, load: 0},
         elements: {ads: 0, tracker: 0, content: 0},
-        rating: {total: '?', plt: '?', ads: '?', tracking: '?'}
+        rating: {total: '?', plt: '?', ads: '?', tracking: '?'},
+       	originUrl: ''
     }
 };
 
@@ -46,6 +47,7 @@ function resetTabEntry(entry) { //vlt effizienter gleich neues objekt zu erzeuge
 	entry.rating.plt = '';
 	entry.rating.ads = '';
 	entry.rating.tracking = '';
+	entry.originUrl = '';
 };
 
 
@@ -100,10 +102,6 @@ function incrementTypeCount(tabId, entry, type) {
 	}
 }
 
-function test() {
-	console.log("Loading Lists from Storage");
-}
-
 chrome.webRequest.onBeforeRequest.addListener(function(details) {
     	var tabId = details.tabId;
     	var requestId = details.requestId;
@@ -117,7 +115,11 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 				tabs.set(tabId, entry);
 			}
 			
-			
+			if(details.type === "main_frame") {
+				entry.originUrl = details.url;
+				console.log("oringUrl = " + entry.originUrl);
+			}
+
 			var reqEntry = entry.reqMap.get(requestId);
 
 			if(typeof reqEntry === "undefined") {	//check if requestId is already used
@@ -139,17 +141,17 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 				//-------------------------------------------------
 
 				//Differentiat between Content Type the right way
-				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: '-', resourceType: details.type});
+				//entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: '-', resourceType: details.type});
 
-				var type = match({tabId: tabId, requestId: requestId, resourceType: details.type, url: details.url});
+				var type = match({tabId: tabId, requestId: requestId, resourceType: details.type, url: details.url, originUrl: entry.originUrl});
 				//console.log("returned type = " + type);
-				if (type !== "-")
-					setMatchType({tabId: tabId, requestId: requestId}, type);
-				//incrementTypeCount(tabId, entry, type);
+				//if (type !== "-")
+				//	setMatchType({tabId: tabId, requestId: requestId}, type);
+				incrementTypeCount(tabId, entry, type);
 
 
 				
-				//entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type, resourceType: details.type});
+				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type, resourceType: details.type, frameId: details.frameId});
 			}
 			else {
 				console.log("onBeforeRequest: requestId already in map");

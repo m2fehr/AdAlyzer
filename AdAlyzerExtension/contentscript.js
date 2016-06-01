@@ -27,6 +27,7 @@ chrome.runtime.sendMessage({msgType, contentType, reqDetails}) mit msgType = 'ma
 */
 
 //Called when this Contentscript receives a message
+/*
 chrome.runtime.onMessage.addListener(
     function(msg, sender, sendResponse) {
         var contentType = "content";
@@ -45,3 +46,4 @@ chrome.runtime.onMessage.addListener(
         chrome.runtime.sendMessage({msgType: 'match', contentType: contentType, reqDetails: msg.reqDetails});
     }
 );
+*/
