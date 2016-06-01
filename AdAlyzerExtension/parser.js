@@ -573,7 +573,12 @@ function match(reqDetails) {
 						return "ad";
 					}
 
-				}else if(tempAdRule.HidingRule == 1){
+				}
+				else
+					return "content";
+			}
+
+				/*else if(tempAdRule.HidingRule == 1){
 
 					//variable wird auf true gesetzt, falls z.B. die DomainList der Regel ein Match ausschliesst.
 					var noHidingMatch = false;
@@ -620,6 +625,7 @@ function match(reqDetails) {
 					}
 				}
 			}
+			
 			if(hidingMatches.length > 0){
 				//console.log("Hiding Rules an ContentScript gesendet.");
 				//test();
@@ -629,6 +635,8 @@ function match(reqDetails) {
 				//setMatchType(reqDetails, "content");
 				return "content";
 			}
+			*/
+			
 	
 }
 

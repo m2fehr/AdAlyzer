@@ -150,7 +150,7 @@ window.addEventListener('load', function(evt) {
                 cell2.innerHTML = (value.responseReceived - value.requestSent).toFixed(0);
                 cell3.innerHTML = (value.completed - value.responseReceived).toFixed(0);
                 cell4.innerHTML = value.url.split(':', 1)[0];
-                cell5.innerHTML = value.resourceType;
+                cell5.innerHTML = value.resourceType + '(' + value.frameId + ')';
                 cell2.style.textAlign = 'right';
                 cell3.style.textAlign = 'right';
                 row.appendChild(cell1);
