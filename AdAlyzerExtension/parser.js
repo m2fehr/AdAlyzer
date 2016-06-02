@@ -331,6 +331,9 @@ function parse(listname, list) {
 						var rules = temp.substring(pos + 1);
 						temp = temp.substring(0, pos);
 
+						//Bugfix, auf der EasyPrivacy Liste gibt es regeln, welche das $ zur trennung der regeln brauchen. ersetzen weiterer $ durch ,.
+						rules = rules.replace('$', ',');
+
 						//Speichern der Regeln
 						rules = rules.split(',');
 						for (var k = 0; k < rules.length; k++) {
@@ -548,8 +551,6 @@ function match(reqDetails) {
 		EasyListMatchCache.unshift(matchingRule);
 		return "ad";
 	}
-	
-	
 /*
 	if (matchList(EasyList, reqDetails)) {
 		//console.log("EasyList MatchCache matched!");
@@ -642,7 +643,7 @@ function testMatchOptions (reqDetails, mRule){
 				//diese Regel hat keinen Einfluss auf unsere Anwendung und wird daher ignoriert.
 				break;
 			default:
-				console.log("unknown rule in RuleList" + tempRule.RuleList[ruleCounter].rule);
+				console.log("unknown rule in RuleList" + tempRule.RuleList[ruleCounter].rule + tempRule.Matchrule);
 		}
 
 		//falls ein Match nicht mehr Möglich ist, kann die for-loop unterbrochen werden.
@@ -781,10 +782,14 @@ function testMatchOptions (reqDetails, mRule){
 			case "popup":
 				/*
 				TODO: Implement!
+				Herausfinden, wie ein Request als Popup erkannt werden kann.
+				In der Dokumentation der Syntax ist von diesem Attribut nirgends die Rede.
+				Das popup-Attribut wird verwendet, um mit Adblock Plus Popups blockeren zu können.
+				Evtl. funktioniert dieses Attribut bei Chrome nicht, auf der Homepage von AdBlock Plus wird auf Firefox bezug genommen!
 				 */
 				break;
 			default:
-				console.log("unbekannte Regel" + tempRule.OptionList[optionCounter].rule);
+				console.log("unbekannte Regel" + tempRule.OptionList[optionCounter].rule + tempRule.Matchrule);
 		}
 
 		if(noMatchPossible){
