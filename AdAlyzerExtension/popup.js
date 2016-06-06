@@ -126,7 +126,7 @@ window.addEventListener('load', function(evt) {
         }
         
         reqMap.forEach(function(value, key, map) {
-            if (value.finished) {
+            //if (value.finished) {
                 row=document.createElement("tr");
                 //Add Eventlistener for doubleclicked rows -> copy URL to clipboard
                 row.addEventListener('dblclick', function (event) {
@@ -148,9 +148,23 @@ window.addEventListener('load', function(evt) {
                 cell3 = document.createElement("td");
                 cell4 = document.createElement("td");
                 cell5 = document.createElement("td");
-                cell1.innerHTML = value.contentType;
-                cell2.innerHTML = (value.responseReceived - value.requestSent).toFixed(0);
-                cell3.innerHTML = (value.completed - value.responseReceived).toFixed(0);
+                var contentType = value.contentType;
+                contentType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
+                cell1.innerHTML = contentType;
+                if (value.responseReceived && value.requestSent) {
+                    cell2.innerHTML = (value.responseReceived - value.requestSent).toFixed(0);
+                    if (value.completed) {
+                        cell3.innerHTML = (value.completed - value.responseReceived).toFixed(0);
+                    }
+                    else {
+                        cell3.innerHTML = '';
+                    }
+                } else {
+                    cell2.innerHTML = '';
+                    cell3.innerHTML = '';
+                }
+                
+                
                 cell4.innerHTML = value.url.split(':', 1)[0];
                 cell5.innerHTML = value.resourceType + '(' + value.frameId + ')';
                 cell2.style.textAlign = 'right';
@@ -162,7 +176,7 @@ window.addEventListener('load', function(evt) {
                 row.appendChild(cell5);
                 row.setAttribute("title", value.url);
                 tableBody.appendChild(row);
-            }
+            //}
         }); 
     });
     
