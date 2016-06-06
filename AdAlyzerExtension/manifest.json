@@ -1,6 +1,6 @@
 {
 	"name": "AdAlyzer",
-	"version": "0.3",
+	"version": "1.0",
 	"manifest_version" : 2,
 	"description": "Analyzes requests on websites",
 	"background" : {"scripts": ["parser.js", "background.js"]},

@@ -6,23 +6,6 @@ class Request {
   }
 }
 
-var req = function(reqId) {
-  if (this instanceof req) {
-    this.reqId = reqId;
-  } else {
-    return new req(reqId);
-  }
-}
-
-//console command to put out all the entries
-tabs.forEach(function(value, key, map) {
-	console.log("tabs[" + key + "] = " + value.size);
-	value.forEach(function(value, key, map) {
-		if (value.finished)
-    		console.log("reqId[" + key + "] waiting: " + (value.responseReceived - value.requestSent) + "ms, download: " + (value.completed - value.responseReceived) + "ms, url:" + value.url);
-	});	
-});
-
 */
 
 //Every Tab gets such a object in the tabs-Map
@@ -38,18 +21,20 @@ tabEntry = function () {
 };
 
 function resetTabEntry(entry) { //vlt effizienter gleich neues objekt zu erzeugen?
-	entry.reqMap.clear();
-	entry.plt.dom = 0;
-	entry.plt.load = 0;
-	entry.elements.ads = 0;
-	entry.elements.tracker = 0;
-	entry.elements.content = 0;
-	entry.rating.total = '';
-	entry.rating.plt = '';
-	entry.rating.ads = '';
-	entry.rating.tracking = '';
-	entry.originUrl = '';
-	entry.adFrames = [];
+	if (entry) {
+		entry.reqMap.clear();
+		entry.plt.dom = 0;
+		entry.plt.load = 0;
+		entry.elements.ads = 0;
+		entry.elements.tracker = 0;
+		entry.elements.content = 0;
+		entry.rating.total = '';
+		entry.rating.plt = '';
+		entry.rating.ads = '';
+		entry.rating.tracking = '';
+		entry.originUrl = '';
+		entry.adFrames = [];
+	}
 
 };
 
@@ -65,11 +50,11 @@ chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
 });
 
 //Reset the Counter when new url is loaded
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+/*chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	if (changeInfo.status === "loading") {
 		resetTabEntry(tabs.get(tabId));
 	}
-});
+});*/
 
 function getReqEntry(tabId, requestId) {
 	if(tabId && tabId !== -1) {	//check if tabId is valid
@@ -105,6 +90,27 @@ function incrementTypeCount(tabId, entry, type) {
 	}
 }
 
+function decrementTypeCount(tabId, entry, type) {
+	switch (type) {
+		case "content":
+			//console.log("content count: " + entry.elements.content);
+			entry.elements.content = entry.elements.content - 1;
+			break;
+		case "ad":
+			entry.elements.ads = entry.elements.ads - 1;
+			chrome.browserAction.setBadgeText({text: entry.elements.ads.toString(), tabId: tabId});
+			break;
+		case "tracker":
+			entry.elements.tracker = entry.elements.tracker - 1;
+			break;
+		case "-":
+			//console.log("incrementTypeCount: type = -");
+			break;
+		default: 
+			console.log("decrementTypeCount: default case, type:" + type);
+	}
+}
+
 chrome.webRequest.onBeforeRequest.addListener(function(details) {
     	var tabId = details.tabId;
     	var requestId = details.requestId;
@@ -116,11 +122,15 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 			if(typeof entry === "undefined") {	//check if an entry exists for this tab
 				entry = tabEntry();
 				tabs.set(tabId, entry);
+			} else {
+				if (details.type === 'main_frame') {
+					resetTabEntry(tabs.get(tabId));	//new site
+				}
 			}
 			
 			if(details.type === "main_frame") {
 				entry.originUrl = details.url;
-				console.log("originUrl = " + entry.originUrl);
+				//console.log("originUrl = " + entry.originUrl);
 			}
 
 			var reqEntry = entry.reqMap.get(requestId);
@@ -162,7 +172,15 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 				}
 			}
 			else {
-				console.log("onBeforeRequest: requestId already in map");
+				//console.log("onBeforeRequest: requestId already in map");
+				var oldType = reqEntry.contentType;
+				var newType = match({tabId: tabId, requestId: requestId, resourceType: details.type, url: details.url, originUrl: entry.originUrl});
+				if (oldType !== newType) {
+					console.log("RequestId: " + requestId + " changed Type from " + oldType + " to " + newType);
+					reqEntry.contentType = newType;
+					decrementTypeCount(tabId, entry, oldType);
+					incrementTypeCount(tabId, entry, newType);
+				}
 			}
 		}
     },
@@ -211,30 +229,13 @@ chrome.runtime.onMessage.addListener(
 	        	entry.plt.load = request.loadTime;
 	        }
 		    break;
-		  case 'match':
-		  	console.log("bg.js: Match message received, type = " + request.contentType);
-			setMatchType(request.reqDetails, request.contentType)
-		    break;
 		  default:
 		    console.log("Unknown Message received");
 		}
 		
     }
 );
-/*
-TODO implement
- */
-function setMatchType(reqDetails, matchType){
-	//console.log("bg.js: Match message received, type = " + matchType);
-	var reqEntry = getReqEntry(reqDetails.tabId, reqDetails.requestId);
-	if (reqEntry !== -1) {
-		reqEntry.contentType = matchType;
-		incrementTypeCount(reqDetails.tabId, tabs.get(reqDetails.tabId), matchType);
-	}
-	else {
-		console.log("setMatchType: reqEntry not found");
-	}
-}
+
 
 //This method is called when the Extension is activated
 window.addEventListener('load', getEasyList);
