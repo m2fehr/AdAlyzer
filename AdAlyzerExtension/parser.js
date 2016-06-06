@@ -341,10 +341,10 @@ function parse(listname, list) {
 							var str = {rule:"", inverted: 0};
 							var tempstr = rules[k].trim();
 
-							//falls die Regel invertiert ist (~), inverted auf 1 setzen.
-							if(tempstr.indexOf('~') != -1){
+							//falls die Regel invertiert ist (~), inverted auf 1 setzen und ~ löschen.
+							if(tempstr.charAt(0) == '~'){
 								str.inverted = 1;
-								tempstr = tempstr.replace('~','');
+								tempstr = tempstr.slice(1);
 							}
 
 							//Testen ob RuleList.
@@ -433,7 +433,7 @@ function parse(listname, list) {
 					temp = temp.replace(/^\.\*/, '');
 					temp = temp.replace(/\.\*$/, '');
 
-					//temp zu Regex machen.
+					//temp speichern
 					rule.Matchrule = temp;
 
 					//console.log(temp + '\n' + rule.Matchrule + "   /    " + rule.DomainList + "   /   " + rule.OptionList + '\n' + rule.RuleList + '\n' + '\n');
@@ -489,10 +489,19 @@ function getEasyListFromStorage() {
 	});
 }
 
-var getDomain = function (href){
-	var x = document.createElement("a");
-	x.href = href;
-	return x;
+// Parse a URL. Based upon http://blog.stevenlevithan.com/archives/parseuri
+// parseUri 1.2.2, (c) Steven Levithan <stevenlevithan.com>, MIT License
+// Inputs: url: the URL you want to parse
+// Outputs: object containing all parts of |url| as attributes
+parseUri = function(url) {
+  var matches = /^(([^:]+(?::|$))(?:(?:\w+:)?\/\/)?(?:[^:@\/]*(?::[^:@\/]*)?@)?(([^:\/?#]*)(?::(\d*))?))((?:[^?#\/]*\/)*[^?#]*)(\?[^#]*)?(\#.*)?/.exec(url);
+  // The key values are identical to the JS location object values for that key
+  var keys = ["href", "origin", "protocol", "host", "hostname", "port",
+              "pathname", "search", "hash"];
+  var uri = {};
+  for (var i=0; (matches && i<keys.length); i++)
+    uri[keys[i]] = matches[i] || "";
+  return uri;
 };
 
 /*
@@ -500,19 +509,22 @@ checks reqDetails against ruleList, returns the Rule on positive match or null o
 */
 function matchList(ruleList, reqDetails) {
 	for (var j = 0; j < ruleList.length; j++) {
-		var tempTRule = ruleList[j];
-		var tempTMatchRule = new RegExp(tempTRule.Matchrule);
-		if (tempTMatchRule.test(reqDetails.url)) {
-			if (tempTRule.Options == 1) {
-				/*
-				 TODO: Bearbeiten der Optionen.
-				 */
-				if (testMatchOptions(reqDetails, tempTRule)) {
-					return tempTRule;
+		var tempRule = ruleList[j];
+		//first check options, faster to compare
+		if (tempRule.Options == 1){
+			//console.log("tempRule Option = 1");
+			if(testMatchOptions(reqDetails, tempRule)) {
+				var tempMatchRule = new RegExp(tempRule.Matchrule);
+				if (tempMatchRule.test(reqDetails.url)) {
+
+					return tempRule;
 				}
 			}
-			else {
-				return tempTRule;
+		} else{
+			var tempMatchRule2 = new RegExp(tempRule.Matchrule);
+			if(tempMatchRule2.test(reqDetails.url)){
+
+				return tempRule;
 			}
 		}
 	}
@@ -551,6 +563,8 @@ function match(reqDetails) {
 		EasyListMatchCache.unshift(matchingRule);
 		return "ad";
 	}
+	
+	
 /*
 	if (matchList(EasyList, reqDetails)) {
 		//console.log("EasyList MatchCache matched!");
@@ -564,35 +578,28 @@ function match(reqDetails) {
 	return "content";
 }
 
-function testMatchOptions (reqDetails, mRule){
-	var tempRule = mRule;
+function testMatchOptions (reqDetails, tempRule){
 
-	//tempMatchRule ist die MatchRule als RegExp
-	var tempMatchRule = new RegExp(tempRule.Matchrule);
-
-	//variable, falls die RuleList oder OptionList der aktuell geprüften Regel ein Match ausschliesst.
-	var noMatch = false;
+	var domain = parseUri(reqDetails.url).hostname;
 
 	//prüfen, ob die RuleList der Regel ein Match zulässt.
 	for(var ruleCounter = 0; ruleCounter < tempRule.RuleList.length; ruleCounter++){
 		switch(tempRule.RuleList[ruleCounter].rule){
 			case "third-party":
 				if(reqDetails.originUrl){
-					var adDomain = getDomain(reqDetails.url);
-					adDomain = adDomain.hostname;
-
+					
 					if(tempRule.RuleList.inverted == 0){
 						//regel ist nicht invertiert. Wird nur auf third-party seiten angewendet. Domain der url darf nicht mit der url der eigentlich aufgerufenen seite übereinstimmen.
 						//(bsp: aufruf: 20min.ch, request geht auf ad.com --> match. 20min.ch, request auf 20min.ch --> kein match.
-						if(reqDetails.originUrl.includes(adDomain)){
-							noMatch = true;
+						if(reqDetails.originUrl.includes(domain)){
+							return false;
 						}
 					}
 					else{
 						//regel ist invertiert. Wird nur auf die eigentlich aufgerufene Seite angewendet.
 						//ggt. von oben.
-						if(!reqDetails.originUrl.includes(adDomain)){
-							noMatch = true;
+						if(!reqDetails.originUrl.includes(domain)){
+							return false;
 						}
 					}
 				}
@@ -600,35 +607,45 @@ function testMatchOptions (reqDetails, mRule){
 				break;
 			case "domain":
 				//variable tempDomainMatches wird auf true gesetzt, falls die URL die bedingung der regel erfüllt.
+				var tempDomainMatchPossible = false;
 				var tempDomainMatches = false;
 
 				for(var domainCount = 0; domainCount < tempRule.DomainList.length; domainCount++){
 					var tempDomain = tempRule.DomainList[domainCount];
-					//console.log(tempDomain);
+
 					if(tempDomain.indexOf("~") === -1){
 						//Domain ist NICHT invertiert. Url muss der domain entsprechen, damit tempDomainMatches auf true gesetzt werden kann.
 
 						if(reqDetails.url.indexOf(tempDomain) != -1){
 							//Domain matcht auf url. Setzen von tempDomainMatches auf true. for-loop muss zuende laufen, falls eine andere Regel ein Match wiederum ausschliesst.
-
-							console.log("Matching Domain: URL: " + reqDetails.url + ", DOMAIN: " + tempDomain);
+							//console.log("Matching Domain: URL: " + reqDetails.url + ", DOMAIN: " + tempDomain);
 							tempDomainMatches = true;
 						}
-					}else{
+						else{
+							//Die Regel kann zum Überschreiben einer vorhergehenden invertierten Regel verwendet werden. die letzte Regel entscheidet also im zweifelsfall.
+							tempDomainMatchPossible = false;
+						}
+					}else {
 						//Domain IST invertiert! Url darf der domain NICHT entsprechen. Sonst muss noMatch auf true gesetzt werden, da ein Match nicht möglich ist.
 
-						tempDomain = tempDomain.replace('~','');
-						if(reqDetails.url.indexOf(tempDomain) != -1){
+						tempDomain = tempDomain.replace('~', '');
+
+						if (reqDetails.url.indexOf(tempDomain) != -1) {
 							//Domain matcht auf url. Match ist somit unmöglich. setzen von tempDomainMatch auf false und unterbrechen der for-loop für diese Regel.
-							console.log("INVERTED Matching Domain: URL: " + reqDetails.url + ", DOMAIN: ~" + tempDomain);
+							//console.log("INVERTED Matching Domain: URL: " + reqDetails.url + ", DOMAIN: ~" + tempDomain);
 							tempDomainMatches = false;
-							break;
+							return false;
+						} else {
+							tempDomainMatchPossible = true;
 						}
 					}
 				}
+				if(tempDomainMatchPossible){
+					tempDomainMatches = true;
+				}
 				if(!tempDomainMatches){
 					//die domain-rule schliesst ein match der url mit dieser regel aus.
-					noMatch = true;
+					return false;
 				}
 				break;
 			case "match-case":
@@ -643,18 +660,8 @@ function testMatchOptions (reqDetails, mRule){
 				//diese Regel hat keinen Einfluss auf unsere Anwendung und wird daher ignoriert.
 				break;
 			default:
-				console.log("unknown rule in RuleList" + tempRule.RuleList[ruleCounter].rule + tempRule.Matchrule);
+				console.log("unknown rule in RuleList" + tempRule.RuleList[ruleCounter].rule, tempRule.Matchrule);
 		}
-
-		//falls ein Match nicht mehr Möglich ist, kann die for-loop unterbrochen werden.
-		if(noMatch){
-			break;
-		}
-	}
-
-	//falls kein Match möglich ist, kann false zurückgegeben werden.
-	if(noMatch){
-		return false;
 	}
 
 	//die var match wird von jeder Regel in der for-loop auf true gesetzt, falls trotz der Regel ein match vorliegt. ist die Variable am Ende der for-loop noch auf false, liegt kein match vor.
@@ -665,7 +672,6 @@ function testMatchOptions (reqDetails, mRule){
 
 		//noMatchPossible wird auf true gesetzt, falls bei einer Regel festgestellt wird, dass ein Match für diesen Request unmöglich ist (Beispiel: resourceType = script, Regel = ~script).
 		//for-loop kann also beendet werden.
-		var noMatchPossible = false;
 		switch(tempRule.OptionList[optionCounter].rule){
 			/*
 			 TODO:
@@ -682,7 +688,7 @@ function testMatchOptions (reqDetails, mRule){
 						match = true;
 					}else{
 						//regel IST invertiert und stimmt mit OptionList überein. Match ist somit ausgeschlossen.
-						noMatchPossible = true;
+						return false;
 					}
 				}
 
@@ -694,7 +700,7 @@ function testMatchOptions (reqDetails, mRule){
 					if(tempRule.OptionList[optionCounter].inverted == 0){
 						match = true;
 					}else{
-						noMatchPossible = true;
+						return false;
 					}
 				}
 
@@ -706,7 +712,7 @@ function testMatchOptions (reqDetails, mRule){
 					if(tempRule.OptionList[optionCounter].inverted == 0){
 						match = true;
 					}else{
-						noMatchPossible = true;
+						return false;
 					}
 				}
 				break;
@@ -717,7 +723,7 @@ function testMatchOptions (reqDetails, mRule){
 					if(tempRule.OptionList[optionCounter].inverted == 0){
 						match = true;
 					}else{
-						noMatchPossible = true;
+						return false;
 					}
 				}
 				break;
@@ -728,7 +734,7 @@ function testMatchOptions (reqDetails, mRule){
 					if(tempRule.OptionList[optionCounter].inverted == 0){
 						match = true;
 					}else{
-						noMatchPossible = true;
+						return false;
 					}
 				}
 				break;
@@ -741,7 +747,7 @@ function testMatchOptions (reqDetails, mRule){
 					if(tempRule.OptionList[optionCounter].inverted == 0){
 						match = true;
 					}else{
-						noMatchPossible = true;
+						return false;
 					}
 				}
 				break;
@@ -751,14 +757,19 @@ function testMatchOptions (reqDetails, mRule){
 					if(tempRule.OptionList[optionCounter].inverted == 0){
 						match = true;
 					}else{
-						noMatchPossible = true;
+						return false;
 					}
 				}
 				break;
 
 			case "document":
-				//Diese Regel kommt in den zwei aktuell verwendeten Listen nicht vor und wird daher ignoriert.
-				console.log("unimplemented option document in rule " + tempMatchRule);
+				if(reqDetails.resourceType == "main_frame"){
+					if(tempRule.OptionList[optionCounter].inverted == 0){
+						match = true;
+					}else{
+						return false;
+					}
+				}
 				break;
 			case "elemhide":
 				//diese Regel hat keinen Einfluss für unsere Anwendung und wird daher ignoriert.
@@ -775,35 +786,51 @@ function testMatchOptions (reqDetails, mRule){
 					if(tempRule.OptionList[optionCounter].inverted == 0){
 						match = true;
 					}else{
-						noMatchPossible = true;
+						return false;;
 					}
 				}
 				break;
+
+			case "ping":
+				/*
+				 TODO:
+				 Herausfinden, wie ein Request als Popup erkannt werden kann.
+				 */
+			break;
+
 			case "popup":
 				/*
-				TODO: Implement!
-				Herausfinden, wie ein Request als Popup erkannt werden kann.
-				In der Dokumentation der Syntax ist von diesem Attribut nirgends die Rede.
-				Das popup-Attribut wird verwendet, um mit Adblock Plus Popups blockeren zu können.
-				Evtl. funktioniert dieses Attribut bei Chrome nicht, auf der Homepage von AdBlock Plus wird auf Firefox bezug genommen!
+				TODO:
+				 Herausfinden, wie ein Request als Popup erkannt werden kann.
+				 In der Dokumentation der Syntax ist von diesem Attribut nirgends die Rede.
+				 Das popup-Attribut wird verwendet, um mit Adblock Plus Popups blockeren zu können.
+				 Evtl. funktioniert dieses Attribut bei Chrome nicht, auf der Homepage von AdBlock Plus wird auf Firefox bezug genommen!
 				 */
 				break;
+
+			case "media":
+				/*
+				TODO: Diese Regel wird von Adblock Plus in der Syntax nirgends spezifiziert!
+				Sie wird jedoch auf der EasyList verwendet und muss daher an dieser Stelle abgefangen werden.
+				Allenfalls wird die Doku der Syntax bald aktualisiert um diese Regel zu erwähnen.
+				 */
+				break;
+
+			case "font":
+				/*
+				TODO: Wie "media".
+				 Diese Regel wird von Adblock Plus in der Syntax nirgends spezifiziert!
+				 Sie wird jedoch auf der EasyList verwendet und muss daher an dieser Stelle abgefangen werden.
+				 Allenfalls wird die Doku der Syntax bald aktualisiert um diese Regel zu erwähnen.
+				 */
+				break;
+
 			default:
-				console.log("unbekannte Regel" + tempRule.OptionList[optionCounter].rule + tempRule.Matchrule);
+				console.log("unbekannte Regel" + tempRule.OptionList[optionCounter].rule, tempRule.Matchrule);
 		}
 
-		if(noMatchPossible){
-			match = false;
-			break;
-		}
 	}
-	if(noMatchPossible){
-		match = false;
-		return false;
-	}
-	if(!match){
-		return false;
-	}
+	
 	return true;
 }
 
