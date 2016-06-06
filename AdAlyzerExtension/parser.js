@@ -514,14 +514,14 @@ function matchList(ruleList, reqDetails) {
 		if (tempRule.Options == 1){
 			//console.log("tempRule Option = 1");
 			if(testMatchOptions(reqDetails, tempRule)) {
-				var tempMatchRule = new RegExp(tempRule.Matchrule);
+				var tempMatchRule = new RegExp(tempRule.Matchrule, "i");
 				if (tempMatchRule.test(reqDetails.url)) {
 
 					return tempRule;
 				}
 			}
 		} else{
-			var tempMatchRule2 = new RegExp(tempRule.Matchrule);
+			var tempMatchRule2 = new RegExp(tempRule.Matchrule, "i");
 			if(tempMatchRule2.test(reqDetails.url)){
 
 				return tempRule;
@@ -581,6 +581,7 @@ function match(reqDetails) {
 function testMatchOptions (reqDetails, tempRule){
 
 	var domain = parseUri(reqDetails.url).hostname;
+	var reqDomain = parseUri(reqDetails.originUrl).hostname;
 
 	//prüfen, ob die RuleList der Regel ein Match zulässt.
 	for(var ruleCounter = 0; ruleCounter < tempRule.RuleList.length; ruleCounter++){
@@ -591,14 +592,14 @@ function testMatchOptions (reqDetails, tempRule){
 					if(tempRule.RuleList.inverted == 0){
 						//regel ist nicht invertiert. Wird nur auf third-party seiten angewendet. Domain der url darf nicht mit der url der eigentlich aufgerufenen seite übereinstimmen.
 						//(bsp: aufruf: 20min.ch, request geht auf ad.com --> match. 20min.ch, request auf 20min.ch --> kein match.
-						if(reqDetails.originUrl.includes(domain)){
+						if(reqDomain == domain){
 							return false;
 						}
 					}
 					else{
 						//regel ist invertiert. Wird nur auf die eigentlich aufgerufene Seite angewendet.
 						//ggt. von oben.
-						if(!reqDetails.originUrl.includes(domain)){
+						if(reqDomain == domain){
 							return false;
 						}
 					}
