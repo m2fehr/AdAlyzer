@@ -19,31 +19,3 @@
         }, 0);
     }
 })();
-
-/*
-Funktion, welche den Typ des content bestimmt
-Resultat zurück geben: 
-chrome.runtime.sendMessage({msgType, contentType, reqDetails}) mit msgType = 'match'
-*/
-
-//Called when this Contentscript receives a message
-/*
-chrome.runtime.onMessage.addListener(
-    function(msg, sender, sendResponse) {
-        var contentType = "content";
-        //console.log("content Script recived: " + msg.matches.length);
-        for(var i = 0; i < msg.matches.length; i++){
-            var selector = msg.matches[i];
-            //console.log(selector.Matchrule);
-            var x = document.querySelector(selector.Matchrule);
-            if(x){
-                contentType = "ad";
-               // console.log("match in ContentScript");
-               // console.log(selector.Matchrule + "         " + x);
-                break;
-            }
-        }
-        chrome.runtime.sendMessage({msgType: 'match', contentType: contentType, reqDetails: msg.reqDetails});
-    }
-);
-*/

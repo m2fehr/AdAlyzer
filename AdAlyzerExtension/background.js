@@ -1,12 +1,4 @@
 
-/* //Just Samples for classes
-class Request {
-  constructor(reqId) {
-    this.reqId = reqId;
-  }
-}
-
-*/
 
 //Every Tab gets such a object in the tabs-Map
 tabEntry = function () {
@@ -20,7 +12,7 @@ tabEntry = function () {
     }
 };
 
-function resetTabEntry(entry) { //vlt effizienter gleich neues objekt zu erzeugen?
+function resetTabEntry(entry) {
 	if (entry) {
 		entry.reqMap.clear();
 		entry.plt.dom = 0;
@@ -35,7 +27,6 @@ function resetTabEntry(entry) { //vlt effizienter gleich neues objekt zu erzeuge
 		entry.originUrl = '';
 		entry.adFrames = [];
 	}
-
 };
 
 
@@ -48,13 +39,6 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
    	tabs.delete(removedTabId);
 });
-
-//Reset the Counter when new url is loaded
-/*chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-	if (changeInfo.status === "loading") {
-		resetTabEntry(tabs.get(tabId));
-	}
-});*/
 
 function getReqEntry(tabId, requestId) {
 	if(tabId && tabId !== -1) {	//check if tabId is valid
@@ -72,7 +56,6 @@ function getReqEntry(tabId, requestId) {
 function incrementTypeCount(tabId, entry, type) {
 	switch (type) {
 		case "content":
-			//console.log("content count: " + entry.elements.content);
 			entry.elements.content = entry.elements.content + 1;
 			break;
 		case "ad":
@@ -82,9 +65,6 @@ function incrementTypeCount(tabId, entry, type) {
 		case "tracker":
 			entry.elements.tracker = entry.elements.tracker + 1;
 			break;
-		case "-":
-			//console.log("incrementTypeCount: type = -");
-			break;
 		default: 
 			console.log("incrementTypeCount: default case, type:" + type);
 	}
@@ -93,18 +73,14 @@ function incrementTypeCount(tabId, entry, type) {
 function decrementTypeCount(tabId, entry, type) {
 	switch (type) {
 		case "content":
-			//console.log("content count: " + entry.elements.content);
 			entry.elements.content = entry.elements.content - 1;
 			break;
 		case "ad":
 			entry.elements.ads = entry.elements.ads - 1;
-			chrome.browserAction.setBadgeText({text: entry.elements.ads.toString(), tabId: tabId});
+			chrome.browserAction.setBadgeText({text: entry.elements.ads ? entry.elements.ads.toString() : '', tabId: tabId});
 			break;
 		case "tracker":
 			entry.elements.tracker = entry.elements.tracker - 1;
-			break;
-		case "-":
-			//console.log("incrementTypeCount: type = -");
 			break;
 		default: 
 			console.log("decrementTypeCount: default case, type:" + type);
@@ -130,53 +106,25 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 			
 			if(details.type === "main_frame") {
 				entry.originUrl = details.url;
-				//console.log("originUrl = " + entry.originUrl);
 			}
 
 			var reqEntry = entry.reqMap.get(requestId);
 
 			if(typeof reqEntry === "undefined") {	//check if requestId is already used
 
-				//Differentiat between Content Type the example way
-				//-------------------------------------------------
-				/*
-				var type = 'content';
-				if(details.url.indexOf('ad') !== -1) {
-					type = 'ad';
-				}
-				else {
-					if((details.url.indexOf('track') !== -1) || (details.url.indexOf('analy') !== -1)) {
-						type = 'tracker';
-					}
-				}
-				incrementTypeCount(tabId, entry, type);
-				*/
-				//-------------------------------------------------
-
-				//Differentiat between Content Type the right way
-				//entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: '-', resourceType: details.type});
-
 				var type = match({tabId: tabId, requestId: requestId, resourceType: details.type, url: details.url, originUrl: entry.originUrl});
-				//console.log("returned type = " + type);
-				//if (type !== "-")
-				//	setMatchType({tabId: tabId, requestId: requestId}, type);
 				incrementTypeCount(tabId, entry, type);
-
-
-				
 				entry.reqMap.set(requestId, {url: details.url, requestSent: 0, responseReceived: 0, completed: 0, finished: false, contentType: type, resourceType: details.type, frameId: details.frameId});
-
 				var requestingFrameId = (details.type === 'sub_frame' ? details.parentFrameId : details.frameId);
 				if((type === "ad") && (entry.adFrames.indexOf(requestingFrameId) === -1)) {
 					entry.adFrames.push(requestingFrameId);
 				}
 			}
 			else {
-				//console.log("onBeforeRequest: requestId already in map");
 				var oldType = reqEntry.contentType;
 				var newType = match({tabId: tabId, requestId: requestId, resourceType: details.type, url: details.url, originUrl: entry.originUrl});
 				if (oldType !== newType) {
-					console.log("RequestId: " + requestId + " changed Type from " + oldType + " to " + newType);
+					//console.log("RequestId: " + requestId + " changed Type from " + oldType + " to " + newType);
 					reqEntry.contentType = newType;
 					decrementTypeCount(tabId, entry, oldType);
 					incrementTypeCount(tabId, entry, newType);

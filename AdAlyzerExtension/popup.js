@@ -63,7 +63,7 @@ window.addEventListener('load', function(evt) {
     var adsPercent = document.getElementById('adsPercent');
     var trackerPercent = document.getElementById('trackerPercent');
     var contentPercent = document.getElementById('contentPercent');
-    var adsRealTotal = document.getElementById('adsRealTotal');
+    //var adsRealTotal = document.getElementById('adsRealTotal');
     var DOMTime = document.getElementById('DOMTime');
     var loadTime = document.getElementById('loadTime');
     var pageRating = document.getElementById('pageRating');
@@ -118,7 +118,7 @@ window.addEventListener('load', function(evt) {
         DOMTime.innerHTML = currentTabEntry.plt.dom + "s";
         loadTime.innerHTML = currentTabEntry.plt.load + "s";
         pageRating.innerHTML = totalRating.textContent;
-        adsRealTotal.innerHTML = currentTabEntry.adFrames.length;
+        //adsRealTotal.innerHTML = currentTabEntry.adFrames.length;
 
         // Third Tab
         while (tableBody.firstChild) {
@@ -126,57 +126,55 @@ window.addEventListener('load', function(evt) {
         }
         
         reqMap.forEach(function(value, key, map) {
-            //if (value.finished) {
-                row=document.createElement("tr");
-                //Add Eventlistener for doubleclicked rows -> copy URL to clipboard
-                row.addEventListener('dblclick', function (event) {
-                    console.log("row doubleclicked, url: " + this.getAttribute("title"));
-                    var copyFrom = document.createElement("textarea");
-                    copyFrom.textContent = this.getAttribute("title");
-                    var body = document.getElementsByTagName('body')[0];
-                    copyFrom.style.boxSizing="border-box"
-                    copyFrom.style.height = "0px";
-                    copyFrom.style.width = "0px";
-                    copyFrom.style.margin = "0px";
-                    body.appendChild(copyFrom);
-                    copyFrom.select();
-                    document.execCommand('copy');
-                    body.removeChild(copyFrom);
-                });
-                cell1 = document.createElement("td");
-                cell2 = document.createElement("td");
-                cell3 = document.createElement("td");
-                cell4 = document.createElement("td");
-                cell5 = document.createElement("td");
-                var contentType = value.contentType;
-                contentType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
-                cell1.innerHTML = contentType;
-                if (value.responseReceived && value.requestSent) {
-                    cell2.innerHTML = (value.responseReceived - value.requestSent).toFixed(0);
-                    if (value.completed) {
-                        cell3.innerHTML = (value.completed - value.responseReceived).toFixed(0);
-                    }
-                    else {
-                        cell3.innerHTML = '';
-                    }
-                } else {
-                    cell2.innerHTML = '';
+            row=document.createElement("tr");
+            //Add Eventlistener for doubleclicked rows -> copy URL to clipboard
+            row.addEventListener('dblclick', function (event) {
+                console.log("row doubleclicked, url: " + this.getAttribute("title"));
+                var copyFrom = document.createElement("textarea");
+                copyFrom.textContent = this.getAttribute("title");
+                var body = document.getElementsByTagName('body')[0];
+                copyFrom.style.boxSizing="border-box"
+                copyFrom.style.height = "0px";
+                copyFrom.style.width = "0px";
+                copyFrom.style.margin = "0px";
+                body.appendChild(copyFrom);
+                copyFrom.select();
+                document.execCommand('copy');
+                body.removeChild(copyFrom);
+            });
+            cell1 = document.createElement("td");
+            cell2 = document.createElement("td");
+            cell3 = document.createElement("td");
+            cell4 = document.createElement("td");
+            cell5 = document.createElement("td");
+            var contentType = value.contentType;
+            contentType = contentType.charAt(0).toUpperCase() + contentType.slice(1);
+            cell1.innerHTML = contentType;
+            if (value.responseReceived && value.requestSent) {
+                cell2.innerHTML = (value.responseReceived - value.requestSent).toFixed(0);
+                if (value.completed) {
+                    cell3.innerHTML = (value.completed - value.responseReceived).toFixed(0);
+                }
+                else {
                     cell3.innerHTML = '';
                 }
-                
-                
-                cell4.innerHTML = value.url.split(':', 1)[0];
-                cell5.innerHTML = value.resourceType + '(' + value.frameId + ')';
-                cell2.style.textAlign = 'right';
-                cell3.style.textAlign = 'right';
-                row.appendChild(cell1);
-                row.appendChild(cell2);
-                row.appendChild(cell3);
-                row.appendChild(cell4);
-                row.appendChild(cell5);
-                row.setAttribute("title", value.url);
-                tableBody.appendChild(row);
-            //}
+            } else {
+                cell2.innerHTML = '';
+                cell3.innerHTML = '';
+            }
+            
+            
+            cell4.innerHTML = value.url.split(':', 1)[0];
+            cell5.innerHTML = value.resourceType + '(' + value.frameId + ')';
+            cell2.style.textAlign = 'right';
+            cell3.style.textAlign = 'right';
+            row.appendChild(cell1);
+            row.appendChild(cell2);
+            row.appendChild(cell3);
+            row.appendChild(cell4);
+            row.appendChild(cell5);
+            row.setAttribute("title", value.url);
+            tableBody.appendChild(row);
         }); 
     });
     
