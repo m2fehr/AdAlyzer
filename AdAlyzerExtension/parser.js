@@ -540,11 +540,11 @@ Um Message an Contentscript zu senden: chrome.tabs.sendMessage(reqDetails.tabId,
 
 function match(reqDetails) {		
 	if (matchList(EasyListMatchCache, reqDetails)) {
-		console.log("EasyList MatchCache matched!");
+		//console.log("EasyList MatchCache matched!");
 		return "ad";
 	}
 	if (matchList(PrivacyListMatchCache, reqDetails)) {
-		console.log("PrivacyList MatchCache matched!");
+		//console.log("PrivacyList MatchCache matched!");
 		return "tracker";
 	}
 	var matchingRule = matchList(PrivacyList, reqDetails);
