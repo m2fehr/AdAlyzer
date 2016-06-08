@@ -6,7 +6,6 @@ tabEntry = function () {
         reqMap: new Map(),
         plt: {dom: 0, load: 0},
         elements: {ads: 0, tracker: 0, content: 0},
-        rating: {total: '?', plt: '?', ads: '?', tracking: '?'},
        	originUrl: '',
        	adFrames: []
     }
@@ -20,10 +19,6 @@ function resetTabEntry(entry) {
 		entry.elements.ads = 0;
 		entry.elements.tracker = 0;
 		entry.elements.content = 0;
-		entry.rating.total = '';
-		entry.rating.plt = '';
-		entry.rating.ads = '';
-		entry.rating.tracking = '';
 		entry.originUrl = '';
 		entry.adFrames = [];
 	}

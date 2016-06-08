@@ -450,18 +450,18 @@ function parse(listname, list) {
 			case "easyList":
 				EasyList = parsedEasyList;
 				HidingList = parsedHidingList;
-				chrome.storage.local.set({'parsedEasyList': parsedEasyList}, function(){
-					console.log("parsedEasyList gespeichert!");
-				});
-				chrome.storage.local.set({'parsedHidingList': parsedHidingList}, function(){
-					console.log("parsedHidingList gespeichert!");
-				});
+				//chrome.storage.local.set({'parsedEasyList': parsedEasyList}, function(){
+				//	console.log("parsedEasyList gespeichert!");
+				//});
+				//chrome.storage.local.set({'parsedHidingList': parsedHidingList}, function(){
+				//	console.log("parsedHidingList gespeichert!");
+				//});
 				break;
 			case "easyPrivacy":
 				PrivacyList = parsedEasyList;
-				chrome.storage.local.set({'parsedPrivacyList': parsedEasyList}, function(){
-					console.log("parsedPrivacyList gespeichert!");
-				});
+				//chrome.storage.local.set({'parsedPrivacyList': parsedEasyList}, function(){
+				//	console.log("parsedPrivacyList gespeichert!");
+				//});
 				break;
 			default:
 				console.log(name + " - sollte easyList oder easyPrivacy sein...!?!");
