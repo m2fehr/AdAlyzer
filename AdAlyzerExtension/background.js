@@ -143,7 +143,7 @@ chrome.webRequest.onCompleted.addListener(function (details) {
 
 chrome.webRequest.onSendHeaders.addListener(function (details) {
 		var reqEntry = getReqEntry(details.tabId, details.requestId);
-		if (reqEntry !== -1) {
+		if (reqEntry !== -1 && reqEntry.requestSent === 0) {
 			reqEntry.requestSent = details.timeStamp;
 		}
 	},
