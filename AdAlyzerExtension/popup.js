@@ -164,10 +164,10 @@ window.addEventListener('load', function(evt) {
             }
             
             
-            //cell4.innerHTML = value.url.split(':', 1)[0];
-            //cell5.innerHTML = value.resourceType + '(' + value.frameId + ')';
-            //cell2.style.textAlign = 'right';
-            //cell3.style.textAlign = 'right';
+            cell4.innerHTML = value.url.split(':', 1)[0];
+            cell5.innerHTML = value.resourceType;
+            cell2.style.textAlign = 'right';
+            cell3.style.textAlign = 'right';
             row.appendChild(cell1);
             row.appendChild(cell2);
             row.appendChild(cell3);
